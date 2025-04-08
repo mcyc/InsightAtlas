@@ -28,20 +28,26 @@ if use_cloud_data:
     def download_from_gdrive(url, dest_path):
         dest_path = Path(dest_path)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
-        # If the file doesn't exist, attempt to download it
+
+        status_placeholder = st.empty()  # Temporary message container
+
         if not dest_path.exists():
-            st.info(f"Downloading {dest_path.name} from cloud...")
+            status_placeholder.info(f"Downloading {dest_path.name} from cloud...")
             response = requests.get(url)
+
             if response.status_code == 200:
-                # Check if response content appears to be HTML rather than the expected file content.
                 content_type = response.headers.get("Content-Type", "")
                 if "text/html" in content_type:
-                    st.error(f"Downloaded {dest_path.name} appears to be an HTML file. " +
-                             "Ensure the file is shared publicly on Google Drive and that the URL is correct.")
+                    status_placeholder.empty()
+                    st.error(
+                        f"{dest_path.name} appears to be an HTML file. "
+                        "Please check sharing permissions or use a proper direct download link."
+                    )
                     return None
                 dest_path.write_bytes(response.content)
-                st.success(f"Downloaded {dest_path.name}")
+                status_placeholder.empty()  # Remove "Downloading..." message
             else:
+                status_placeholder.empty()
                 st.error(f"Failed to download {dest_path.name} (status code: {response.status_code})")
                 return None
         return str(dest_path)
@@ -146,9 +152,10 @@ if gdf is not None and df_values is not None:
             'fillOpacity': 0
         },
         highlight_function=lambda feature: {
-            'weight': 2,
-            'color': '#ff6600',
-            'fillOpacity': 0.1
+            'weight': 3,
+            'color': '#1f77b4',  # Blue highlight
+            'fillOpacity': 0.2,
+            #'bringToFront': True  # Ensures it's drawn above base layer; commented out for effeciency
         },
         popup=folium.GeoJsonPopup(
             fields=[JOIN_KEY, "CTNAME", selected_metric],
