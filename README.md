@@ -13,16 +13,26 @@ InsightAtlas is designed for data scientists, analysts, and civic-minded teams w
 - Map access to education programs or community services
 - Understand neighborhood-level metrics and disparities
 - Create interactive visual narratives to support decisions or policy
+- Deliver lightweight tools for field teams and non-technical users
 
 ---
 
 ## Features
 
-- Customizable regional maps using your own data
-- Simple setup for each organization using separate config folders
-- Choose which columns to visualize and label
-- Modular code that’s easy to read and build on
-- Interactive, web-based interface built with Streamlit
+- Interactive choropleth maps built from your data
+- Choose which columns to visualize via dropdown
+- Supports local or cloud-hosted data (e.g., Google Drive)
+- Mobile-friendly interface powered by Streamlit and Folium
+- Modular layout to support multi-phase development
+- Built-in tools for data validation, map layering, and future sync
+
+---
+
+## Live Demo
+
+Try the prototype on Streamlit Cloud:  
+**→ [Launch InsightAtlas](https://insightatlas.streamlit.app)**  
+*(Uses Google Drive to load demo data — no installation required.)*
 
 ---
 
@@ -44,19 +54,19 @@ InsightAtlas/
 │       ├── spatial_utils.py
 │       └── config_parser.py
 ├── config/
-│   ├── prototype/
-│   ├── ct_boundaries.geojson
-│   ├── ct_values.csv
+│   └── prototype/
+│       ├── ct_boundaries.geojson      # only exists locally
+│       ├── ct_values.csv              # only exists locally
+│       └── validate_geojson.py
 │   └── config.yaml      # Optional for later
-├── data/                     # Add .gitignore to skip this
-├── docs/                     # Developer notes, phase plans, usage guides
+├── data/                # Auto-populated cloud downloads (gitignored)
+├── docs/
 │   ├── project_plan.md
 │   ├── phase_0_data-prep.md
 │   └── phase_1_core-map.md
 ├── requirements.txt
 ├── packages.txt
 └── README.md
-
 ```
 
 ---
@@ -77,37 +87,59 @@ To run InsightAtlas locally:
    source venv/bin/activate  # or venv\Scripts\activate on Windows
    ```
 
-3. Install the required packages:
+3. Install dependencies:
    ```
    pip install -r requirements.txt
    ```
 
-4. Start the app:
+4. Run the app:
    ```
    streamlit run app/main.py
    ```
+
+5. (Optional) Toggle `use_cloud_data = True` in `main.py` to pull data from Google Drive.
 
 ---
 
 ## Use Case Example
 
-InsightAtlas was originally built for a community canvassing team to help them visualize engagement levels across neighborhoods. By adjusting just a few settings, it can now support education groups, nonprofits, local governments, and anyone working with spatial data.
+InsightAtlas was originally built for a community canvassing team to help visualize engagement levels across neighborhoods. Since then, it has expanded to support:
+
+- Urban policy research
+- Access to education mapping
+- Health outreach visualization
+- Local planning and service delivery
 
 ---
 
 ## Tech Stack
 
-- Python
-- Streamlit
-- Pandas
-- YAML for configuration
-- (Optional) Plotly or Folium for map visuals
+- Python + Streamlit
+- GeoPandas, Pandas, Folium
+- Google Drive integration (via `requests`)
+- YAML (planned for config files in later phases)
 
 ---
 
 ## Working with Your Data
 
-InsightAtlas keeps your data private. Each setup uses a local CSV and config file that stays on your machine. In future versions, we’ll add support for loading data from the cloud.
+InsightAtlas uses either:
+- Local `.geojson` and `.csv` files for development
+- Or cloud-hosted files (like public Google Drive links) for deployed use
+
+All processing happens client-side — your data stays in your control.
+
+---
+
+## Deployment
+
+InsightAtlas can be deployed instantly on [Streamlit Cloud](https://streamlit.io/cloud) using:
+
+- `app/main.py` as entry point
+- `requirements.txt` (Python deps)
+- `packages.txt` (system-level geospatial libs)
+
+See the [docs](docs/) folder for project plans, validation tools, and phase documentation.
 
 ---
 
