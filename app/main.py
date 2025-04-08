@@ -21,16 +21,17 @@ def load_geojson(path):
     try:
         gdf = gpd.read_file(path)
 
-        # Fix invalid geometries
-        invalid_count = (~gdf.geometry.is_valid).sum()
-        if invalid_count > 0:
-            st.warning(f"Fixing {invalid_count} invalid geometries using buffer(0)")
-            gdf["geometry"] = gdf["geometry"].buffer(0)
+        with st.expander("Preprocessing Logs", expanded=False):
+            # Fix invalid geometries
+            invalid_count = (~gdf.geometry.is_valid).sum()
+            if invalid_count > 0:
+                st.warning(f"Fixing {invalid_count} invalid geometries using buffer(0)")
+                gdf["geometry"] = gdf["geometry"].buffer(0)
 
-        # Reproject if necessary
-        if gdf.crs and gdf.crs.to_string() != "EPSG:4326":
-            st.info(f"Reprojecting from {gdf.crs} to EPSG:4326...")
-            gdf = gdf.to_crs(epsg=4326)
+            # Reproject if necessary
+            if gdf.crs and gdf.crs.to_string() != "EPSG:4326":
+                st.info(f"Reprojecting from {gdf.crs} to EPSG:4326...")
+                gdf = gdf.to_crs(epsg=4326)
 
         # simplify the geomretry for the rendering, 0.0001 is about 10m resolution
         gdf["geometry"] = gdf["geometry"].simplify(0.0001, preserve_topology=True)
@@ -69,14 +70,17 @@ if gdf is not None and df_values is not None:
     selected_label = st.sidebar.selectbox("Select metric to visualize:", list(metric_options.keys()))
     selected_metric = metric_options[selected_label]
 
-    # Debug printout for confirmation
-    st.sidebar.write("Selected:", selected_label, "→", selected_metric)
-
     # Merge selected metric into GeoDataFrame
     gdf = gdf.merge(df_values[[JOIN_KEY, selected_metric]], on=JOIN_KEY, how="left")
 
-    st.success(f"Filtered to {len(gdf)} CT boundaries based on data availability.")
-    st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA", selected_metric]].head())
+    # Diagnostics and debug info
+    with st.expander("Diagnostics", expanded=False):
+        st.success(f"Filtered to {len(gdf)} CT boundaries based on data availability.")
+        st.write("Selected:", selected_label, "→", selected_metric)
+
+    # Preview data table
+    with st.expander("Data Preview", expanded=False):
+        st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA", selected_metric]].head())
 
     # --- Map Rendering ---
     st.subheader("Map Preview")
