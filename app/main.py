@@ -3,19 +3,61 @@ import geopandas as gpd
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
+import os
+from pathlib import Path
+import requests
 
-# --- File paths ---
-GEOJSON_PATH = "config/prototype/ct_boundaries.geojson"
-CSV_PATH = "config/prototype/ct_values.csv"
-JOIN_KEY = "DGUID"
-
-# --- Page setup ---
+# --- Ensure set_page_config is the first Streamlit command ---
 st.set_page_config(page_title="InsightAtlas - Urban Demographics", layout="wide")
-#st.title("InsightAtlas: CT Boundary Viewer")
 st.subheader("Census Tracts 2021")
 
-# --- Load GeoJSON with fixes for invalid geometries and reproject to EPSG:4326 ---
+# --- Configuration Block ---
+# Use cloud data or local files
+use_cloud_data = True
 
+# Cloud data settings (update these URLs with your actual Google Drive file IDs)
+
+CLOUD_CSV_URL = "https://drive.google.com/uc?export=download&id=1ERHEMcBhyPcgYq2r5iwxEO9KIH45TAN7"
+CLOUD_GEOJSON_URL = "https://drive.google.com/uc?export=download&id=1galoO4I9wobrq0lo-ojPCKg0B6ZHrlob"
+
+# Local directory for cloud data (both locally and when deployed)
+CLOUD_DATA_DIR = "data/cloud"
+
+# --- Set file paths based on configuration ---
+if use_cloud_data:
+    def download_from_gdrive(url, dest_path):
+        dest_path = Path(dest_path)
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        # If the file doesn't exist, attempt to download it
+        if not dest_path.exists():
+            st.info(f"Downloading {dest_path.name} from cloud...")
+            response = requests.get(url)
+            if response.status_code == 200:
+                # Check if response content appears to be HTML rather than the expected file content.
+                content_type = response.headers.get("Content-Type", "")
+                if "text/html" in content_type:
+                    st.error(f"Downloaded {dest_path.name} appears to be an HTML file. " +
+                             "Ensure the file is shared publicly on Google Drive and that the URL is correct.")
+                    return None
+                dest_path.write_bytes(response.content)
+                st.success(f"Downloaded {dest_path.name}")
+            else:
+                st.error(f"Failed to download {dest_path.name} (status code: {response.status_code})")
+                return None
+        return str(dest_path)
+
+    GEOJSON_PATH = download_from_gdrive(CLOUD_GEOJSON_URL, f"{CLOUD_DATA_DIR}/ct_boundaries.geojson")
+    CSV_PATH = download_from_gdrive(CLOUD_CSV_URL, f"{CLOUD_DATA_DIR}/ct_values.csv")
+    if GEOJSON_PATH is None or CSV_PATH is None:
+        st.error("Cloud data download failed. Please check the URLs and file sharing settings on Google Drive.")
+        st.stop()
+else:
+    GEOJSON_PATH = "config/prototype/ct_boundaries.geojson"
+    CSV_PATH = "config/prototype/ct_values.csv"
+
+JOIN_KEY = "DGUID"
+
+# --- Load GeoJSON with fixes for invalid geometries and reproject to EPSG:4326 ---
 @st.cache_data
 def load_geojson(path):
     logs = []
@@ -55,7 +97,7 @@ gdf, preprocessing_logs = load_geojson(GEOJSON_PATH)
 df_values = load_ct_values(CSV_PATH)
 
 if gdf is not None and df_values is not None:
-    # Filter GeoDataFrame to include only CTs in the values CSV
+    # Filter GeoDataFrame to include only CTs present in the values CSV
     gdf = gdf[gdf[JOIN_KEY].isin(df_values[JOIN_KEY])]
 
     # Define metric options and labels
@@ -64,18 +106,17 @@ if gdf is not None and df_values is not None:
         "Renting (% pop.)": "renting",
         "Visible Minority (% pop.)": "viz_minority",
         "w. Bachelor's or higher (% pop.)": "edu_abvBach",
-        "Immigrated in 2016-2021 (% pop.)" : "immigrated_af2016"
+        "Immigrated in 2016-2021 (% pop.)": "immigrated_af2016"
     }
 
     # Select metric from dropdown in sidebar
     selected_label = st.sidebar.selectbox("Select metric to visualize:", list(metric_options.keys()))
     selected_metric = metric_options[selected_label]
 
-    # Merge selected metric into GeoDataFrame
+    # Merge selected metric into the GeoDataFrame
     gdf = gdf.merge(df_values[[JOIN_KEY, selected_metric]], on=JOIN_KEY, how="left")
 
     # --- Map Rendering ---
-
     centroid = gdf.geometry.unary_union.centroid
     center_coords = [centroid.y, centroid.x]
 
@@ -87,12 +128,12 @@ if gdf is not None and df_values is not None:
         data=gdf,
         columns=[JOIN_KEY, selected_metric],
         key_on=f"feature.properties.{JOIN_KEY}",
-        fill_color="magma_r", #"YlGnBu"
+        fill_color="magma_r",
         fill_opacity=0.6,
         line_opacity=0.2,
         legend_name=selected_label,
         nan_fill_color="lightgray",
-        bins=9,  # More color increments for finer granularity
+        bins=9,
     ).add_to(m)
 
     # GeoJson layer with popups and highlight
@@ -100,17 +141,15 @@ if gdf is not None and df_values is not None:
         gdf,
         name="CT Boundaries",
         style_function=lambda feature: {
-            'color': 'darkgray',       # Border color
-            'weight': 1.5,             # Thinner border
-            'fillOpacity': 0           # Transparent fill for now
+            'color': 'darkgray',
+            'weight': 1.5,
+            'fillOpacity': 0
         },
-        # Highlight the border when clicking
         highlight_function=lambda feature: {
             'weight': 2,
             'color': '#ff6600',
             'fillOpacity': 0.1
         },
-        # Show popup only when clicked
         popup=folium.GeoJsonPopup(
             fields=[JOIN_KEY, "CTNAME", selected_metric],
             aliases=["DGUID:", "Name:", "Value:"],
