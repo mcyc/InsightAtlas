@@ -10,36 +10,36 @@ CSV_PATH = "config/prototype/ct_values.csv"
 JOIN_KEY = "DGUID"
 
 # --- Page setup ---
-st.set_page_config(page_title="InsightAtlas Prototype", layout="wide")
-st.title("InsightAtlas: CT Boundary Viewer")
+st.set_page_config(page_title="InsightAtlas - Urban Demographics", layout="wide")
+#st.title("InsightAtlas: CT Boundary Viewer")
+st.subheader("Census Tracts 2021")
 
-# --- Load GeoJSON with fix for invalid geometries and reproject to EPSG:4326 ---
-st.subheader("Loading CT Boundaries")
+# --- Load GeoJSON with fixes for invalid geometries and reproject to EPSG:4326 ---
 
 @st.cache_data
 def load_geojson(path):
+    logs = []
     try:
         gdf = gpd.read_file(path)
 
-        with st.expander("Preprocessing Logs", expanded=False):
-            # Fix invalid geometries
-            invalid_count = (~gdf.geometry.is_valid).sum()
-            if invalid_count > 0:
-                st.warning(f"Fixing {invalid_count} invalid geometries using buffer(0)")
-                gdf["geometry"] = gdf["geometry"].buffer(0)
+        # Fix invalid geometries
+        invalid_count = (~gdf.geometry.is_valid).sum()
+        if invalid_count > 0:
+            logs.append(f"Fixed {invalid_count} invalid geometries using buffer(0).")
+            gdf["geometry"] = gdf["geometry"].buffer(0)
 
-            # Reproject if necessary
-            if gdf.crs and gdf.crs.to_string() != "EPSG:4326":
-                st.info(f"Reprojecting from {gdf.crs} to EPSG:4326...")
-                gdf = gdf.to_crs(epsg=4326)
+        # Reproject if necessary
+        if gdf.crs and gdf.crs.to_string() != "EPSG:4326":
+            logs.append(f"Reprojected from {gdf.crs} to EPSG:4326.")
+            gdf = gdf.to_crs(epsg=4326)
 
-        # simplify the geomretry for the rendering, 0.0001 is about 10m resolution
+        # Simplify the geometry for rendering (0.0001 is about 10m resolution)
         gdf["geometry"] = gdf["geometry"].simplify(0.0001, preserve_topology=True)
 
-        return gdf
+        return gdf, logs
     except Exception as e:
         st.error(f"Failed to load GeoJSON: {e}")
-        return None
+        return None, []
 
 @st.cache_data
 def load_ct_values(csv_path):
@@ -51,7 +51,7 @@ def load_ct_values(csv_path):
         return None
 
 # --- Load and filter data ---
-gdf = load_geojson(GEOJSON_PATH)
+gdf, preprocessing_logs = load_geojson(GEOJSON_PATH)
 df_values = load_ct_values(CSV_PATH)
 
 if gdf is not None and df_values is not None:
@@ -63,7 +63,7 @@ if gdf is not None and df_values is not None:
         "% Age 20-34": "age_20to34",
         "% Renting": "renting",
         "% Visible Minority": "viz_minority",
-        "% Education Above Bachelor": "edu_abvBach"
+        "% w. Bachelor's or higher": "edu_abvBach"
     }
 
     # Select metric from dropdown in sidebar
@@ -73,17 +73,7 @@ if gdf is not None and df_values is not None:
     # Merge selected metric into GeoDataFrame
     gdf = gdf.merge(df_values[[JOIN_KEY, selected_metric]], on=JOIN_KEY, how="left")
 
-    # Diagnostics and debug info
-    with st.expander("Diagnostics", expanded=False):
-        st.success(f"Filtered to {len(gdf)} CT boundaries based on data availability.")
-        st.write("Selected:", selected_label, "→", selected_metric)
-
-    # Preview data table
-    with st.expander("Data Preview", expanded=False):
-        st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA", selected_metric]].head())
-
     # --- Map Rendering ---
-    st.subheader("Map Preview")
 
     centroid = gdf.geometry.unary_union.centroid
     center_coords = [centroid.y, centroid.x]
@@ -96,7 +86,7 @@ if gdf is not None and df_values is not None:
         data=gdf,
         columns=[JOIN_KEY, selected_metric],
         key_on=f"feature.properties.{JOIN_KEY}",
-        fill_color="YlGnBu",
+        fill_color="magma_r", #"YlGnBu"
         fill_opacity=0.6,
         line_opacity=0.2,
         legend_name=selected_label,
@@ -113,20 +103,39 @@ if gdf is not None and df_values is not None:
             'weight': 1.5,             # Thinner border
             'fillOpacity': 0           # Transparent fill for now
         },
-        # highlight the boarder when clicking
+        # Highlight the border when clicking
         highlight_function=lambda feature: {
             'weight': 2,
             'color': '#ff6600',
             'fillOpacity': 0.1
         },
-        # show pop up only when clicked
+        # Show popup only when clicked
         popup=folium.GeoJsonPopup(
             fields=[JOIN_KEY, "CTNAME", selected_metric],
-            aliases=["CTUID:", "Name:", "Value:"],
+            aliases=["DGUID:", "Name:", "Value:"],
             localize=True
         )
     ).add_to(m)
 
     st_folium(m, width=900, height=600, returned_objects=[])
+
+    # --- Consolidated Collapsed Section ---
+    with st.expander("Preprocessing logs, diagnostics, and data preview", expanded=False):
+        # Show preprocessing logs
+        if preprocessing_logs:
+            st.markdown("**Preprocessing Logs:**")
+            for msg in preprocessing_logs:
+                st.info(msg)
+        else:
+            st.markdown("**Preprocessing Logs:** No issues detected.")
+
+        # Diagnostics information
+        st.markdown("**Diagnostics:**")
+        st.success(f"Filtered to {len(gdf)} CT boundaries based on data availability.")
+        st.write("Selected Metric:", selected_label, "→", selected_metric)
+
+        # Data preview table
+        st.markdown("**Data Preview (First 5 Rows):**")
+        st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA", selected_metric]].head())
 else:
     st.warning("Unable to load or render CT boundaries.")
