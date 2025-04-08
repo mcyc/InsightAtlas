@@ -8,24 +8,24 @@ This phase ensures that your core datasets — particularly Canadian Census Trac
 
 ## 1. Core Datasets
 
-### 1.1 CT GeoJSON (`LCT_000B21a_E.geojson`)
+### 1.1 CT GeoJSON (`ct_boundaries.geojson`)
 
-- Must include the `CTUID` column (Census Tract Unique Identifier)
-- Should contain valid `geometry` for every CT
-- Check for:
-  - Missing or duplicate CTUIDs
-  - Invalid or null geometries
-  - Projection consistency (ideally EPSG:4326 for Leaflet/Folium)
+- [x] Includes the `DGUID` column (used as the unique join key)
+- [x] Contains valid `geometry` for every CT
+- [x] Handles:
+  - Invalid geometries via `buffer(0)`
+  - Missing/null geometries via filtering
+  - Reprojection to `EPSG:4326`
+  - Simplification for rendering performance
 
-### 1.2 CT Indicator CSV (`ct_data.csv`)
+### 1.2 CT Indicator CSV (`ct_values.csv`)
 
-- Must include:
-  - `CTUID` (matching the GeoJSON)
-  - One or more indicator columns (e.g., `under14_pct`, `median_income`)
-- Ensure:
-  - Clean column names (snake_case recommended)
-  - No missing values in the `CTUID` column
-  - Proper numeric types for indicator values
+- [x] Includes `DGUID` (to match GeoJSON)
+- [x] Contains multiple indicator columns:
+  - `age_20to34`, `renting`, `edu_abvBach`, etc.
+- [x] All columns use clean `snake_case` format
+- [x] No missing values in `DGUID`
+- [x] Indicator values are numeric and ready for choropleth mapping
 
 ---
 
@@ -33,67 +33,78 @@ This phase ensures that your core datasets — particularly Canadian Census Trac
 
 ### 2.1 FED GeoJSON (`FED_2021_E.geojson`)
 
-- Includes `FEDUID`, `FEDNAME`, and `geometry`
-- Should use same CRS as CT layer (or be reprojected)
-- Will be added as a secondary map layer in Phase 2
+- [ ] Not yet included
+- [ ] Will include `FEDUID`, `FEDNAME`, `geometry`
+- [ ] Should be reprojected to `EPSG:4326` if used
 
 ### 2.2 FED Indicator CSV (`fed_data.csv`)
 
-- Optional summary metrics per FED
-- Must include a join key: `FEDUID` or `FEDNAME`
+- [ ] Not yet included
+- [ ] Should include `FEDUID` or `FEDNAME` as join key
+- [ ] Optional summary-level metrics per riding
 
 ---
 
 ## 3. File Placement and Naming
 
-Place your working files in the `config/prototype/` folder for Phase 0 testing.
+Phase 0 uses `config/prototype/` for local development.  
+For cloud deployment, files are dynamically downloaded into `data/cloud/` from Google Drive.
 
 ```
 config/
 └── prototype/
-    ├── config.yaml
-    ├── ct_data.csv
-    ├── LCT_000B21a_E.geojson
-    ├── FED_2021_E.geojson        # Optional
-    └── fed_data.csv              # Optional
+    ├── ct_boundaries.geojson
+    ├── ct_values.csv
+    ├── validate_geojson.py
+    └── config.yaml            # Optional for future phases
+
+data/
+└── cloud/
+    ├── ct_boundaries.geojson
+    └── ct_values.csv
 ```
 
-> These files should be local only and excluded from version control via `.gitignore`.
+> Local files are excluded from version control via `.gitignore`. Google Drive links are used for production deployment.
 
 ---
 
 ## 4. Validation Checklist
 
-Use a simple Jupyter notebook or Python script to validate:
+Data validation completed using `main.py` and supporting scripts:
 
-- [ ] CT GeoJSON loads and has valid geometries
-- [ ] Indicator CSV joins correctly on `CTUID`
-- [ ] All indicator columns are numeric and formatted
-- [ ] Optional FED files are clean and joinable (if used)
+- [x] CT GeoJSON loads and has valid geometries
+- [x] Indicator CSV joins correctly on `DGUID`
+- [x] All indicator columns are numeric and formatted
+- [x] Simplified geometry improves performance
+- [ ] FED files will be validated in Phase 2
 
-You may want to use `geopandas`, `shapely`, and `pandas` for this phase.
+Tools used: `geopandas`, `shapely`, `pandas`, `requests`
 
 ---
 
 ## 5. Example CT Indicator CSV Format
 
 ```csv
-CTUID,under14_pct,median_income,seniors_pct
-35100350100,16.4,55800,12.1
-35100350200,13.2,61100,14.7
-35100350300,17.8,49200,13.4
+DGUID,age_20to34,renting,viz_minority,edu_abvBach
+2021S05075350011.02,69.2,62.9,55.8,65.2
+2021S05075350011.03,58.4,49.7,42.1,53.5
+...
 ```
 
 ---
 
 ## 6. Tips
 
-- Use `geopandas.read_file()` to inspect `.geojson` and validate geometry types
-- Keep data clean and minimal for early phases — you can always enrich later
-- Avoid including personal data or sensitive information in early datasets
+- Use `geopandas.read_file()` to inspect `.geojson` and validate projection
+- Cache cloud downloads with `@st.cache_data` to reduce wait time
+- Keep early files small and scoped — scale later
+- Avoid committing raw data files directly to GitHub
 
 ---
 
 ## What's Next?
 
-Once data is validated and loaded into your local `config/prototype/` folder, you're ready to move on to **Phase 1: Core CT Dashboard**, where you'll build the first visual choropleth map.
+With Phase 0 complete, you're ready to move on to **Phase 1: Core CT Dashboard**, which enables:
+- Live map rendering using Folium
+- Dynamic metric selection via Streamlit sidebar
+- Hover/click interactions for CT-level context
