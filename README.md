@@ -31,17 +31,32 @@ InsightAtlas is designed for data scientists, analysts, and civic-minded teams w
 ```
 InsightAtlas/
 ├── app/
-│   ├── main.py               # Runs the app
-│   ├── data_loader.py        # Loads and reads CSVs
-│   ├── config_parser.py      # Reads each org’s config
-│   └── map_renderer.py       # Draws the map
+│   ├── __init__.py
+│   ├── main.py
+│   ├── map_logic/
+│   │   ├── ct_layer.py
+│   │   ├── fed_overlay.py
+│   ├── interaction/
+│   │   ├── session_canvassing.py
+│   │   └── cloud_sync.py
+│   └── utils/
+│       ├── data_loader.py
+│       ├── spatial_utils.py
+│       └── config_parser.py
 ├── config/
-│   └── org1/
-│       ├── config.yaml       # Column names, color settings, etc.
-│       └── data.csv          # Your organization’s data (not shared)
-├── .gitignore
+│   ├── prototype/
+│   ├── ct_boundaries.geojson
+│   ├── ct_values.csv
+│   └── config.yaml      # Optional for later
+├── data/                     # Add .gitignore to skip this
+├── docs/                     # Developer notes, phase plans, usage guides
+│   ├── project_plan.md
+│   ├── phase_0_data-prep.md
+│   └── phase_1_core-map.md
 ├── requirements.txt
+├── packages.txt
 └── README.md
+
 ```
 
 ---

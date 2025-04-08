@@ -1,0 +1,77 @@
+import pandas as pd
+import geopandas as gpd
+import os
+import sys
+
+# Constants
+DATA_DIR = "config/prototype"
+CT_CSV = os.path.join(DATA_DIR, "ct_data.csv")
+CT_GEOJSON = os.path.join(DATA_DIR, "LCT_000B21a_E.geojson")
+REQUIRED_COLUMNS = ["CTUID"]
+
+
+def check_file_exists(filepath):
+    if not os.path.exists(filepath):
+        print(f"ERROR: Missing file: {filepath}")
+        return False
+    return True
+
+
+def validate_csv_columns(df, required_cols):
+    missing = [col for col in required_cols if col not in df.columns]
+    if missing:
+        print(f"ERROR: Missing required columns in CSV: {missing}")
+        return False
+    return True
+
+
+def validate_geojson(gdf):
+    if "CTUID" not in gdf.columns:
+        print("ERROR: CTUID column not found in GeoJSON.")
+        return False
+    if not gdf.geometry.is_valid.all():
+        print("ERROR: Some geometries in the GeoJSON are invalid.")
+        return False
+    return True
+
+
+def main():
+    success = True
+
+    # Check files exist
+    if not check_file_exists(CT_CSV):
+        success = False
+    if not check_file_exists(CT_GEOJSON):
+        success = False
+
+    if not success:
+        sys.exit(1)
+
+    # Load and validate CSV
+    try:
+        ct_df = pd.read_csv(CT_CSV)
+        print(f"Loaded CSV with shape: {ct_df.shape}")
+        if not validate_csv_columns(ct_df, REQUIRED_COLUMNS):
+            success = False
+    except Exception as e:
+        print(f"ERROR: Failed to read or validate CSV: {e}")
+        success = False
+
+    # Load and validate GeoJSON
+    try:
+        ct_gdf = gpd.read_file(CT_GEOJSON)
+        print(f"Loaded GeoJSON with {len(ct_gdf)} features")
+        if not validate_geojson(ct_gdf):
+            success = False
+    except Exception as e:
+        print(f"ERROR: Failed to read or validate GeoJSON: {e}")
+        success = False
+
+    if not success:
+        sys.exit(1)
+    else:
+        print("Phase 0 validation passed successfully.")
+
+
+if __name__ == "__main__":
+    main()

@@ -56,8 +56,12 @@ df_values = load_ct_values(CSV_PATH)
 if gdf is not None and df_values is not None:
     # Filter GeoDataFrame to include only CTs in the values CSV
     gdf = gdf[gdf[JOIN_KEY].isin(df_values[JOIN_KEY])]
+
+    # Merge indicator data into GeoDataFrame
+    gdf = gdf.merge(df_values[[JOIN_KEY, "age_20to34"]], on=JOIN_KEY, how="left")
+
     st.success(f"Filtered to {len(gdf)} CT boundaries based on data availability.")
-    st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA"]].head())
+    st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA", "age_20to34"]].head())
 
     # --- Map Rendering ---
     st.subheader("Map Preview")
@@ -67,13 +71,27 @@ if gdf is not None and df_values is not None:
 
     m = folium.Map(location=center_coords, zoom_start=11, tiles="cartodbpositron")
 
+    # Choropleth layer using age_20to34
+    folium.Choropleth(
+        geo_data=gdf,
+        data=gdf,
+        columns=[JOIN_KEY, "age_20to34"],
+        key_on=f"feature.properties.{JOIN_KEY}",
+        fill_color="YlGnBu",
+        fill_opacity=0.6,
+        line_opacity=0.2,
+        legend_name="Age 20–34 (%)",
+        nan_fill_color="lightgray",
+    ).add_to(m)
+
+    # GeoJson layer with popups and highlight
     folium.GeoJson(
         gdf,
         name="CT Boundaries",
         style_function=lambda feature: {
             'color': 'darkgray',       # Border color
-            'weight': 1.5,          # Thinner border
-            'fillOpacity': 0        # Transparent fill for now
+            'weight': 1.5,             # Thinner border
+            'fillOpacity': 0           # Transparent fill for now
         },
         # highlight the boarder when clicking
         highlight_function=lambda feature: {
@@ -89,7 +107,6 @@ if gdf is not None and df_values is not None:
         )
     ).add_to(m)
 
-    st_folium(m, width=900, height=600, returned_objects=[]) #
-    #st_folium(m, width=900, height=600)
+    st_folium(m, width=900, height=600, returned_objects=[])
 else:
     st.warning("Unable to load or render CT boundaries.")
