@@ -8,7 +8,8 @@ from pathlib import Path
 import requests
 
 # --- Ensure set_page_config is the first Streamlit command ---
-st.set_page_config(page_title="InsightAtlas - Urban Demographics", layout="wide")
+#st.set_page_config(page_title="InsightAtlas - Urban Demographics", layout="wide")
+st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.subheader("Census Tracts 2021")
 
 # --- Configuration Block ---
