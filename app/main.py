@@ -60,10 +60,11 @@ if gdf is not None and df_values is not None:
 
     # Define metric options and labels
     metric_options = {
-        "% Age 20-34": "age_20to34",
-        "% Renting": "renting",
-        "% Visible Minority": "viz_minority",
-        "% w. Bachelor's or higher": "edu_abvBach"
+        "Age 20-34 (% pop.)": "age_20to34",
+        "Renting (% pop.)": "renting",
+        "Visible Minority (% pop.)": "viz_minority",
+        "w. Bachelor's or higher (% pop.)": "edu_abvBach",
+        "Immigrated in 2016-2021 (% pop.)" : "immigrated_af2016"
     }
 
     # Select metric from dropdown in sidebar
