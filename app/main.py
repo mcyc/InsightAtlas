@@ -17,7 +17,6 @@ st.title("InsightAtlas: CT Boundary Viewer")
 st.subheader("Loading CT Boundaries")
 
 @st.cache_data
-
 def load_geojson(path):
     try:
         gdf = gpd.read_file(path)
@@ -33,13 +32,15 @@ def load_geojson(path):
             st.info(f"Reprojecting from {gdf.crs} to EPSG:4326...")
             gdf = gdf.to_crs(epsg=4326)
 
+        # simplify the geomretry for the rendering, 0.0001 is about 10m resolution
+        gdf["geometry"] = gdf["geometry"].simplify(0.0001, preserve_topology=True)
+
         return gdf
     except Exception as e:
         st.error(f"Failed to load GeoJSON: {e}")
         return None
 
 @st.cache_data
-
 def load_ct_values(csv_path):
     try:
         df = pd.read_csv(csv_path)
@@ -69,13 +70,26 @@ if gdf is not None and df_values is not None:
     folium.GeoJson(
         gdf,
         name="CT Boundaries",
-        tooltip=folium.GeoJsonTooltip(
-            fields=[JOIN_KEY, "CTNAME", "LANDAREA"],
-            aliases=["CTUID:", "Name:", "Land Area (km²):"],
+        style_function=lambda feature: {
+            'color': 'darkgray',       # Border color
+            'weight': 1.5,          # Thinner border
+            'fillOpacity': 0        # Transparent fill for now
+        },
+        # highlight the boarder when clicking
+        highlight_function=lambda feature: {
+            'weight': 2,
+            'color': '#ff6600',
+            'fillOpacity': 0.1
+        },
+        # show pop up only when clicked
+        popup=folium.GeoJsonPopup(
+            fields=[JOIN_KEY, "CTNAME"],
+            aliases=["CTUID:", "Name:"],
             localize=True
         )
     ).add_to(m)
 
-    st_folium(m, width=900, height=600)
+    st_folium(m, width=900, height=600, returned_objects=[]) #
+    #st_folium(m, width=900, height=600)
 else:
     st.warning("Unable to load or render CT boundaries.")
