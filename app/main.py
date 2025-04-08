@@ -84,7 +84,7 @@ if gdf is not None and df_values is not None:
     centroid = gdf.geometry.unary_union.centroid
     center_coords = [centroid.y, centroid.x]
 
-    m = folium.Map(location=center_coords, zoom_start=11, tiles="cartodbpositron")
+    m = folium.Map(location=center_coords, zoom_start=9.4, tiles="cartodbpositron")
 
     # Choropleth layer using selected metric
     folium.Choropleth(
@@ -97,6 +97,7 @@ if gdf is not None and df_values is not None:
         line_opacity=0.2,
         legend_name=selected_label,
         nan_fill_color="lightgray",
+        bins=9,  # More color increments for finer granularity
     ).add_to(m)
 
     # GeoJson layer with popups and highlight
@@ -116,8 +117,8 @@ if gdf is not None and df_values is not None:
         },
         # show pop up only when clicked
         popup=folium.GeoJsonPopup(
-            fields=[JOIN_KEY, "CTNAME"],
-            aliases=["CTUID:", "Name:"],
+            fields=[JOIN_KEY, "CTNAME", selected_metric],
+            aliases=["CTUID:", "Name:", "Value:"],
             localize=True
         )
     ).add_to(m)
