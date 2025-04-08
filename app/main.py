@@ -57,11 +57,26 @@ if gdf is not None and df_values is not None:
     # Filter GeoDataFrame to include only CTs in the values CSV
     gdf = gdf[gdf[JOIN_KEY].isin(df_values[JOIN_KEY])]
 
-    # Merge indicator data into GeoDataFrame
-    gdf = gdf.merge(df_values[[JOIN_KEY, "age_20to34"]], on=JOIN_KEY, how="left")
+    # Define metric options and labels
+    metric_options = {
+        "% Age 20-34": "age_20to34",
+        "% Renting": "renting",
+        "% Visible Minority": "viz_minority",
+        "% Education Above Bachelor": "edu_abvBach"
+    }
+
+    # Select metric from dropdown in sidebar
+    selected_label = st.sidebar.selectbox("Select metric to visualize:", list(metric_options.keys()))
+    selected_metric = metric_options[selected_label]
+
+    # Debug printout for confirmation
+    st.sidebar.write("Selected:", selected_label, "→", selected_metric)
+
+    # Merge selected metric into GeoDataFrame
+    gdf = gdf.merge(df_values[[JOIN_KEY, selected_metric]], on=JOIN_KEY, how="left")
 
     st.success(f"Filtered to {len(gdf)} CT boundaries based on data availability.")
-    st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA", "age_20to34"]].head())
+    st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA", selected_metric]].head())
 
     # --- Map Rendering ---
     st.subheader("Map Preview")
@@ -71,16 +86,16 @@ if gdf is not None and df_values is not None:
 
     m = folium.Map(location=center_coords, zoom_start=11, tiles="cartodbpositron")
 
-    # Choropleth layer using age_20to34
+    # Choropleth layer using selected metric
     folium.Choropleth(
         geo_data=gdf,
         data=gdf,
-        columns=[JOIN_KEY, "age_20to34"],
+        columns=[JOIN_KEY, selected_metric],
         key_on=f"feature.properties.{JOIN_KEY}",
         fill_color="YlGnBu",
         fill_opacity=0.6,
         line_opacity=0.2,
-        legend_name="Age 20–34 (%)",
+        legend_name=selected_label,
         nan_fill_color="lightgray",
     ).add_to(m)
 
