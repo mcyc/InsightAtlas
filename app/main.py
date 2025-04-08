@@ -1,10 +1,12 @@
 import streamlit as st
 import geopandas as gpd
+import pandas as pd
 import folium
 from streamlit_folium import st_folium
 
 # --- File paths ---
 GEOJSON_PATH = "config/prototype/ct_boundaries.geojson"
+CSV_PATH = "config/prototype/ct_values.csv"
 JOIN_KEY = "DGUID"
 
 # --- Page setup ---
@@ -15,6 +17,7 @@ st.title("InsightAtlas: CT Boundary Viewer")
 st.subheader("Loading CT Boundaries")
 
 @st.cache_data
+
 def load_geojson(path):
     try:
         gdf = gpd.read_file(path)
@@ -35,10 +38,24 @@ def load_geojson(path):
         st.error(f"Failed to load GeoJSON: {e}")
         return None
 
-gdf = load_geojson(GEOJSON_PATH)
+@st.cache_data
 
-if gdf is not None:
-    st.success(f"Loaded {len(gdf)} CT boundaries.")
+def load_ct_values(csv_path):
+    try:
+        df = pd.read_csv(csv_path)
+        return df
+    except Exception as e:
+        st.error(f"Failed to load CT values CSV: {e}")
+        return None
+
+# --- Load and filter data ---
+gdf = load_geojson(GEOJSON_PATH)
+df_values = load_ct_values(CSV_PATH)
+
+if gdf is not None and df_values is not None:
+    # Filter GeoDataFrame to include only CTs in the values CSV
+    gdf = gdf[gdf[JOIN_KEY].isin(df_values[JOIN_KEY])]
+    st.success(f"Filtered to {len(gdf)} CT boundaries based on data availability.")
     st.dataframe(gdf[[JOIN_KEY, "CTNAME", "LANDAREA"]].head())
 
     # --- Map Rendering ---
