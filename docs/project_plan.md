@@ -19,11 +19,12 @@ The initial focus is on enabling community canvassing teams to explore demograph
 **Goal:** Ensure input files are clean, complete, and structurally aligned.
 
 #### Requirements:
-- `ct_data.csv` with columns like `CTUID`, `under14_pct`, `median_income`, etc.
-- `LCT_000B21a_E.geojson` with valid geometries and `CTUID`s
-- Optional: `FED_2021_E.geojson` for overlay support
-- Optional: `fed_data.csv` for FED-level summaries
-- (Later) Cloud backend credentials for sync
+- [x] `ct_values.csv` with columns like `DGUID`, `age_20to34`, `renting`, `edu_abvBach`, etc.
+- [x] `ct_boundaries.geojson` with valid geometries and `DGUID`s
+- [ ] Optional: `FED_2021_E.geojson` for overlay support
+- [ ] Optional: `fed_data.csv` for FED-level summaries
+- [ ] Optional: Backend credentials (for later cloud sync and user access)
+- [x] Cloud loading from Google Drive enabled via Streamlit
 
 ---
 
@@ -32,11 +33,12 @@ The initial focus is on enabling community canvassing teams to explore demograph
 **Goal:** Build the foundational map experience using CTs.
 
 #### Subphases:
-1. Load CT GeoJSON and render boundaries
-2. Join and display CT indicator data
-3. Enable dropdown to select indicator for choropleth coloring
-4. Add popups or hover tooltips with CT-level stats
-5. Ensure map behaves well on mobile
+1. [x] Load CT GeoJSON and render boundaries
+2. [x] Join and display CT indicator data
+3. [x] Enable dropdown to select indicator for choropleth coloring
+4. [x] Add popups (on click) with CT-level stats
+5. [ ] Ensure map responsiveness and rendering performance on mobile
+6. [ ] (Bonus) Apply `simplify()` for geometry efficiency and `highlight_function` for map interactivity
 
 ---
 
@@ -45,10 +47,11 @@ The initial focus is on enabling community canvassing teams to explore demograph
 **Goal:** Add a secondary layer for orientation, filtering, and grouping.
 
 #### Subphases:
-1. Load and display FED boundaries (as outline layer)
-2. Allow users to select a FED and zoom to it
-3. Filter CTs by selected FED (spatial join or lookup)
-4. (Optional) Show FED-level stats in sidebar
+1. [ ] Load and display FED boundaries (as outline layer)
+2. [ ] Allow users to select a FED and zoom to it
+3. [ ] Filter CTs by selected FED (spatial join or lookup)
+4. [ ] (Optional) Show FED-level stats in sidebar
+5. [ ] (Planned) Extend configuration support to overlay layers
 
 ---
 
@@ -57,11 +60,11 @@ The initial focus is on enabling community canvassing teams to explore demograph
 **Goal:** Allow users to mark CTs as “canvassed” during a local session.
 
 #### Subphases:
-1. Enable marking of CTs via click or control
-2. Track canvassed CTs using `st.session_state`
-3. Visually update map to reflect canvassed status
-4. Allow reset or undo
-5. Export canvassed CT list for offline use
+1. [ ] Enable marking of CTs via click or toggle
+2. [ ] Track canvassed CTs using `st.session_state`
+3. [ ] Visually update map to reflect canvassed status
+4. [ ] Allow reset or undo
+5. [ ] Export canvassed CT list for offline use
 
 ---
 
@@ -70,11 +73,11 @@ The initial focus is on enabling community canvassing teams to explore demograph
 **Goal:** Centralize canvassing progress and support user-based views.
 
 #### Subphases:
-1. Connect to a backend (Firebase, Supabase, etc.)
-2. Sync canvassed CTs in real-time
-3. Load previously canvassed data on launch
-4. Add visibility controls (e.g., “show only mine”)
-5. Optional: Auth system to manage users and access
+1. [ ] Connect to a backend (Firebase, Supabase, etc.)
+2. [ ] Sync canvassed CTs in real-time
+3. [ ] Load previously canvassed data on launch
+4. [ ] Add visibility controls (e.g., “show only mine”)
+5. [ ] Optional: Auth system to manage users and access
 
 ---
 
@@ -83,7 +86,7 @@ The initial focus is on enabling community canvassing teams to explore demograph
 ### Requirements
 
 **requirements.txt**
-- `streamlit`, `pandas`, `geopandas`, `folium`, `streamlit-folium`, `pyyaml`, `shapely`, `protobuf<4.0`
+- `streamlit`, `pandas`, `geopandas`, `folium`, `streamlit-folium`, `requests`, `shapely`, `protobuf<4.0`
 
 **packages.txt** (for Streamlit Cloud)
 - `gdal`, `geos`, `proj-bin`
@@ -92,17 +95,19 @@ The initial focus is on enabling community canvassing teams to explore demograph
 
 ## Design Principles
 
-- Each phase is cleanly layered to minimize refactoring
-- Geographic data joins use stable IDs (`CTUID`, `FEDUID`)
-- Interactivity is local-first, then scaled to cloud
-- Code is modular with extension points clearly labeled
-- Project is designed to support multiple orgs with isolated configs
+- [x] Each phase is cleanly layered to minimize refactoring
+- [x] Geographic data joins use stable IDs (`DGUID`, `FEDUID`)
+- [x] Interactivity is local-first, then scaled to cloud
+- [x] Cloud-based files use Google Drive with toggleable local fallback
+- [x] Code is modular, with folders for `map_logic`, `interaction`, and `utils`
+- [x] Designed to support multiple organizations with isolated configs
 
 ---
 
 ## Future Enhancements (Post-MVP)
 
-- Export-ready PDF or PNG reports
-- Support for school zones, municipal wards, or other region types
-- Data upload or config wizard UI
-- Accessibility and localization (e.g., French/English toggle)
+- [ ] Export-ready PDF or PNG reports
+- [ ] Support for school zones, municipal wards, or other region types
+- [ ] Data upload or config wizard UI
+- [ ] Accessibility and localization (e.g., French/English toggle)
+- [ ] Theming support for civic or educational orgs
