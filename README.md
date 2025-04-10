@@ -1,6 +1,11 @@
 # InsightAtlas
 
-**A flexible dashboard for exploring and sharing regional insights through data.**  
+[![Streamlit App](https://img.shields.io/badge/Live%20Demo-Streamlit-brightgreen?logo=streamlit)](https://insight-atlas.streamlit.app)
+[![Phase](https://img.shields.io/badge/Phase-0%20Complete-blueviolet)](docs/phase_0_data-prep.md)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue)](LICENSE)
+
+
+**A flexible dashboard for exploring and sharing geographical insights through data.**  
 InsightAtlas makes it easy to map and compare geographic trends using your own CSV data. Originally created to support community canvassing, the app is built to adapt — whether you're working on education access, public engagement, or local planning.
 
 ---
@@ -31,7 +36,7 @@ InsightAtlas is designed for data scientists, analysts, and civic-minded teams w
 ## Live Demo
 
 Try the prototype on Streamlit Cloud:  
-**→ [Launch InsightAtlas](https://insightatlas.streamlit.app)**  
+**→ [Launch InsightAtlas](https://insight-atlas.streamlit.app)**
 *(Uses Google Drive to load demo data — no installation required.)*
 
 ---
