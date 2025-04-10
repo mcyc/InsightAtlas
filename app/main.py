@@ -165,7 +165,7 @@ if gdf is not None and df_values is not None:
         )
     ).add_to(m)
 
-    st_folium(m, width=900, height=600, returned_objects=[])
+    st_folium(m, use_container_width=True, height=600, returned_objects=[])
 
     # --- Consolidated Collapsed Section ---
     with st.expander("Preprocessing logs, diagnostics, and data preview", expanded=False):
