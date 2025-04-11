@@ -5,12 +5,11 @@ import folium
 from streamlit_folium import st_folium
 from pathlib import Path
 import requests
-import streamlit as st
 import uuid
 from shapely.geometry import GeometryCollection
 import numpy as np
 
-APP_VERSION = "v0.0.0-dev0"
+APP_VERSION = "v0.0.0-dev1"
 
 # --- Ensure set_page_config is the first Streamlit command ---
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
