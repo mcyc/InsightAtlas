@@ -5,7 +5,6 @@ import folium
 from streamlit_folium import st_folium
 from pathlib import Path
 import requests
-import streamlit as st
 
 APP_VERSION = "v0.0.0-dev0"
 
