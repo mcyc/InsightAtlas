@@ -6,6 +6,10 @@ from streamlit_folium import st_folium
 import os
 from pathlib import Path
 import requests
+import streamlit as st
+
+APP_VERSION = "v0.0.0-dev0"
+st.sidebar.caption(f"Version: {APP_VERSION}")
 
 # --- Ensure set_page_config is the first Streamlit command ---
 #st.set_page_config(page_title="InsightAtlas - Urban Demographics", layout="wide")
