@@ -66,7 +66,7 @@ else:
 JOIN_KEY = "DGUID"
 
 # --- Load GeoJSON with fixes for invalid geometries and reproject to EPSG:4326 ---
-@st.cache_data
+@st.cache_data(ttl=0)
 def load_geojson(path):
     logs = []
     try:
@@ -91,7 +91,7 @@ def load_geojson(path):
         st.error(f"Failed to load GeoJSON: {e}")
         return None, []
 
-@st.cache_data
+@st.cache_data(ttl=0)
 def load_ct_values(csv_path):
     try:
         df = pd.read_csv(csv_path)
