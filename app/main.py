@@ -9,7 +9,7 @@ import uuid
 from shapely.geometry import GeometryCollection
 import numpy as np
 
-APP_VERSION = "v0.1.0-beta.1"
+APP_VERSION = "v0.1.0"
 
 # --- Ensure set_page_config is the first Streamlit command ---
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
