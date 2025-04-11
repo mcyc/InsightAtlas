@@ -10,6 +10,11 @@ APP_VERSION = "v0.0.0-dev0"
 
 # --- Ensure set_page_config is the first Streamlit command ---
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
+try:
+    st.write("🌱 Starting InsightAtlas...")
+except Exception as e:
+    st.error(f"Startup failed: {e}")
+
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census Tracts 2021")
 
@@ -31,28 +36,38 @@ if use_cloud_data:
         dest_path = Path(dest_path)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Always delete the old file to prevent stale/corrupted cache
+        if dest_path.exists():
+            dest_path.unlink()
+
         status_placeholder = st.empty()  # Temporary message container
 
-        if not dest_path.exists():
-            status_placeholder.info(f"Downloading {dest_path.name} from cloud...")
-            response = requests.get(url)
+        status_placeholder.info(f"Downloading {dest_path.name} from cloud...")
+        try:
+            response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
+        except Exception as e:
+            status_placeholder.empty()
+            st.error(f"Request error for {dest_path.name}: {e}")
+            return None
 
-            if response.status_code == 200:
-                content_type = response.headers.get("Content-Type", "")
-                if "text/html" in content_type:
-                    status_placeholder.empty()
-                    st.error(
-                        f"{dest_path.name} appears to be an HTML file. "
-                        "Please check sharing permissions or use a proper direct download link."
-                    )
-                    return None
-                dest_path.write_bytes(response.content)
-                status_placeholder.empty()  # Remove "Downloading..." message
-            else:
+        if response.status_code == 200:
+            content_type = response.headers.get("Content-Type", "")
+            if "text/html" in content_type:
                 status_placeholder.empty()
-                st.error(f"Failed to download {dest_path.name} (status code: {response.status_code})")
+                st.error(
+                    f"{dest_path.name} appears to be an HTML file. "
+                    "Please check sharing permissions or use a direct download link."
+                )
                 return None
+            dest_path.write_bytes(response.content)
+            status_placeholder.empty()
+        else:
+            status_placeholder.empty()
+            st.error(f"Failed to download {dest_path.name} (status code: {response.status_code})")
+            return None
+
         return str(dest_path)
+
 
     GEOJSON_PATH = download_from_gdrive(CLOUD_GEOJSON_URL, f"{CLOUD_DATA_DIR}/ct_boundaries.geojson")
     CSV_PATH = download_from_gdrive(CLOUD_CSV_URL, f"{CLOUD_DATA_DIR}/ct_values.csv")
