@@ -100,20 +100,30 @@ if gdf is not None and df is not None:
         centroid = unioned.centroid
     center = [centroid.y, centroid.x]
 
-    # --- Base map ---
+# --- Base map ---
     base_map = folium.Map(location=center, zoom_start=9.4, tiles="cartodbpositron")
 
-    # --- Add choropleth + legend ---
-    choropleth, legend = add_custom_choropleth(
-        fmap=None,
-        gdf=gdf,
-        value_column=selected_metric,
-        popup_fields=["CTNAME", selected_metric],
-        popup_aliases=["Tract:", selected_label],
-        legend_caption=selected_label,
-    )
+    # --- Add each metric as a separate (exclusive) base layer ---
+    for label, metric in METRICS.items():
+        choropleth, legend = add_custom_choropleth(
+            fmap=None,
+            gdf=gdf,
+            value_column=metric,
+            popup_fields=["CTNAME", metric],
+            popup_aliases=["Tract:", label],
+            legend_caption=label,
+        )
+        fg = folium.FeatureGroup(name=label)#, overlay=False)  # Treat as overlay
+        fg.add_child(choropleth)
+        #fg.add_child(legend)
+        base_map.add_child(fg)
 
-    # --- Display ---
+    # --- Add Layer Control to toggle between base layers ---
+    #folium.LayerControl(collapsed=False).add_to(base_map)
+    folium.LayerControl().add_to(base_map)
+
+
+    # --- Display map in Streamlit ---
     st_folium(
         base_map,
         feature_group_to_add=[choropleth, legend],

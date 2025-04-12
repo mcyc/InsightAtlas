@@ -57,7 +57,7 @@ def add_custom_choropleth(
         branca_cmap = getattr(branca.colormap.linear, cmap)
         colormap = branca_cmap.scale(bins[0], bins[-1]).to_step(n=len(bins) - 1)
     except AttributeError:
-        colormap = matplotlib_to_step_colormap(cmap, bins, nan_color)
+        colormap = matplotlib_to_step_colormap(cmap, bins)
 
     if legend_caption:
         colormap.caption = legend_caption
@@ -68,7 +68,7 @@ def add_custom_choropleth(
     # Create the GeoJson layer with color styling
     choropleth_layer = folium.GeoJson(
         gdf,
-        name="Choropleth",
+        name=legend_caption or value_column,
         style_function=lambda feature: {
             "fillColor": feature["properties"]["__choropleth_color__"],
             "color": border_color,
