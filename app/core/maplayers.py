@@ -4,7 +4,22 @@ import numpy as np
 import pandas as pd
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
+from branca.element import MacroElement
+from jinja2 import Template  # Ensure you're using jinja2.Template here!
 
+class ColorbarElement(MacroElement):
+    def __init__(self, colormap):
+        super().__init__()
+        self._name = "ColorbarElement"
+        self.colormap = colormap
+
+        self._template = Template(u"""
+        {% macro html(this, kwargs) %}
+        <div id='legend' style='position: absolute; bottom: 20px; left: 20px; z-index: 9999;'>
+            {{ this.colormap._repr_html_() | safe }}
+        </div>
+        {% endmacro %}
+        """)
 
 def matplotlib_to_step_colormap(cmap_name, bins):
     cmap = cm.get_cmap(cmap_name)
@@ -90,8 +105,12 @@ def add_custom_choropleth(
     # Optionally add to map
     if fmap is not None:
         choropleth_layer.add_to(fmap)
-        if show_legend:
-            colormap.width = colorbar_width
-            colormap.add_to(fmap)
 
-    return choropleth_layer, colormap
+    if show_legend:
+        colormap.width = colorbar_width
+        colorbar_layer = ColorbarElement(colormap)
+    else:
+        colorbar_layer = None
+
+    return choropleth_layer, colorbar_layer
+

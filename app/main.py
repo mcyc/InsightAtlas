@@ -109,7 +109,7 @@ if gdf is not None and df is not None:
     # --- Add each metric as a separate (exclusive) base layer ---
     fg_dict = {}
     for label, metric in METRICS.items():
-        choropleth, legend = add_custom_choropleth(
+        choropleth, colorbar = add_custom_choropleth(
             fmap=None,
             gdf=gdf,
             value_column=metric,
@@ -118,8 +118,9 @@ if gdf is not None and df is not None:
             legend_caption=label,
         )
         fg = folium.FeatureGroup(name=label, overlay=True)  # Treat as overlay
+        if colorbar:
+            fg.add_child(colorbar)
         fg.add_child(choropleth)
-        #fg.add_child(legend)
         fg_dict[label]=fg
 
     # --- Display map in Streamlit ---
