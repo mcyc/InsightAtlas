@@ -9,7 +9,9 @@ import uuid
 from shapely.geometry import GeometryCollection
 import numpy as np
 
-APP_VERSION = "v0.1.0"
+from core.maplayers import add_custom_choropleth
+
+APP_VERSION = "v0.2.0-dev1"
 
 # --- Ensure set_page_config is the first Streamlit command ---
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
@@ -171,21 +173,17 @@ if gdf is not None and df_values is not None:
     bins = list(np.linspace(min_val, max_val, 9))
 
     # Choropleth layer using selected metric
-    choropleth = folium.Choropleth(
-        geo_data=gdf,
-        data=gdf,
-        columns=[JOIN_KEY, selected_metric],
+    choropleth = add_custom_choropleth(
+        fmap=m,
+        gdf=gdf,
+        value_column=selected_metric,
         key_on=f"feature.properties.{JOIN_KEY}",
-        fill_color="magma_r",
-        fill_opacity=0.6,
-        line_opacity=0.2,
-        nan_fill_color="lightgray",
-        bins=bins,#9,
+        popup_fields=[JOIN_KEY, "CTNAME", selected_metric],
+        popup_aliases=["DGUID:", "Name:", "Value:"],
+        legend_caption=None,
+        cmap='magma_r',
+        colorbar_width=300
     )
-    try:
-        choropleth.color_scale.width = 300
-    except Exception as e:
-        st.warning("Could not adjust color scale width.")
 
     unique_key = f"{selected_metric}_{uuid.uuid4()}"
 
