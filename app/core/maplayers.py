@@ -6,7 +6,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
 
-def matplotlib_to_step_colormap(cmap_name, bins, nan_color="#d3d3d3"):
+def matplotlib_to_step_colormap(cmap_name, bins):
     cmap = cm.get_cmap(cmap_name)
     norm = mcolors.Normalize(vmin=bins[0], vmax=bins[-1])
     colors = [mcolors.to_hex(cmap(norm(v))) for v in bins[:-1]]
@@ -26,7 +26,6 @@ def add_custom_choropleth(
         cmap="magma_r",
         nan_color="#d3d3d3",
         fill_opacity=0.6,
-        line_opacity=0.2,
         border_color="darkgray",
         popup_fields=None,
         popup_aliases=None,
@@ -75,7 +74,6 @@ def add_custom_choropleth(
             "color": border_color,
             "weight": 1.5,
             "fillOpacity": fill_opacity,
-            "opacity": line_opacity,
         },
         highlight_function=lambda feature: {
             "weight": 3,
