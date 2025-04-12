@@ -108,6 +108,7 @@ if gdf is not None and df is not None:
 
     # --- Add each metric as a separate (exclusive) base layer ---
     fg_dict = {}
+    colorbars = {}
     for label, metric in METRICS.items():
         choropleth, colorbar = add_custom_choropleth(
             fmap=None,
@@ -115,13 +116,21 @@ if gdf is not None and df is not None:
             value_column=metric,
             popup_fields=["CTNAME", metric],
             popup_aliases=["Tract:", label],
-            legend_caption=label,
         )
         fg = folium.FeatureGroup(name=label, overlay=True)  # Treat as overlay
         if colorbar:
-            fg.add_child(colorbar)
+            #colormap= colorbar
+            colorbars[label] = colorbar
+        #    fg.add_child(colorbar)
         fg.add_child(choropleth)
         fg_dict[label]=fg
+
+    # Label the map
+    st.markdown(f"""
+    <div>
+      <h4 style='font-size: 1rem; margin-top: -1.3rem; margin-bottom: -1.5rem; opacity: 0.8;'>{selected_label}</h4>
+    </div>
+    """, unsafe_allow_html=True)
 
     # --- Display map in Streamlit ---
     st_folium(
@@ -131,6 +140,18 @@ if gdf is not None and df is not None:
         use_container_width=True,
         returned_objects=[],
         key="map"
+    )
+
+    # Show colorbar separately
+    legend_html = colorbars[selected_label]._repr_html_()
+    st.markdown(
+        f"""
+        <div style='float: right; width: fit-content; margin-right: 10px; margin-top: -650px;'>
+            {legend_html}
+        </div>
+        <div style='clear: both'></div>
+        """,
+        unsafe_allow_html=True
     )
 
     # --- Optional debug section ---

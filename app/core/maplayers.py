@@ -5,17 +5,19 @@ import pandas as pd
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 from branca.element import MacroElement
-from jinja2 import Template  # Ensure you're using jinja2.Template here!
+from jinja2 import Template
 
 class ColorbarElement(MacroElement):
-    def __init__(self, colormap):
+    def __init__(self, colormap, element_id="legend"):
         super().__init__()
         self._name = "ColorbarElement"
         self.colormap = colormap
-
+        self.element_id = element_id
         self._template = Template(u"""
         {% macro html(this, kwargs) %}
-        <div id='legend' style='position: absolute; bottom: 20px; left: 20px; z-index: 9999;'>
+        <div id="{{ this.element_id }}" class="folium-colorbar"
+             style="position: absolute; bottom: 20px; left: 20px;
+                    z-index: 9999; background: white; padding: 4px;">
             {{ this.colormap._repr_html_() | safe }}
         </div>
         {% endmacro %}
@@ -52,7 +54,12 @@ def add_custom_choropleth(
     Create a folium.GeoJson choropleth layer with optional colormap,
     supporting both branca and matplotlib colormaps.
 
-    Returns (choropleth_layer, colormap). If fmap is provided, layers are added automatically.
+    Returns
+    -------
+    choropleth_layer : folium.GeoJson
+        The choropleth layer with styling and popups.
+    colorbar_layer : MacroElement or None
+        The colorbar legend as an HTML MacroElement (only if show_legend is True).
     """
     values = pd.to_numeric(gdf[value_column], errors="coerce")
 
@@ -102,15 +109,13 @@ def add_custom_choropleth(
         ) if popup_fields else None,
     )
 
-    # Optionally add to map
-    if fmap is not None:
-        choropleth_layer.add_to(fmap)
-
+    # Create colorbar as a MacroElement (optional)
     if show_legend:
         colormap.width = colorbar_width
-        colorbar_layer = ColorbarElement(colormap)
+        #safe_id = f"legend-{(legend_caption or value_column).replace(' ', '_').replace('(', '').replace(')', '').replace('.', '')}"
+        #colorbar_layer = ColorbarElement(colormap, element_id=safe_id)
+        colorbar_layer = colormap
     else:
         colorbar_layer = None
 
     return choropleth_layer, colorbar_layer
-
