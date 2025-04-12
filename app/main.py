@@ -20,6 +20,9 @@ CLOUD_DATA_DIR = "data/cloud"
 CLOUD_CSV_URL = "https://drive.google.com/uc?export=download&id=1ERHEMcBhyPcgYq2r5iwxEO9KIH45TAN7"
 CLOUD_GEOJSON_URL = "https://drive.google.com/uc?export=download&id=1galoO4I9wobrq0lo-ojPCKg0B6ZHrlob"
 
+# default zoom
+zoom_start = 9.4
+
 def download_from_gdrive(url, dest_path):
     dest_path = Path(dest_path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -100,10 +103,11 @@ if gdf is not None and df is not None:
         centroid = unioned.centroid
     center = [centroid.y, centroid.x]
 
-# --- Base map ---
-    base_map = folium.Map(location=center, zoom_start=9.4, tiles="cartodbpositron")
+    # --- Base map ---
+    base_map = folium.Map(location=center, zoom_start=zoom_start, tiles="cartodbpositron")
 
     # --- Add each metric as a separate (exclusive) base layer ---
+    fg_dict = {}
     for label, metric in METRICS.items():
         choropleth, legend = add_custom_choropleth(
             fmap=None,
@@ -113,20 +117,15 @@ if gdf is not None and df is not None:
             popup_aliases=["Tract:", label],
             legend_caption=label,
         )
-        fg = folium.FeatureGroup(name=label)#, overlay=False)  # Treat as overlay
+        fg = folium.FeatureGroup(name=label, overlay=True)  # Treat as overlay
         fg.add_child(choropleth)
         #fg.add_child(legend)
-        base_map.add_child(fg)
-
-    # --- Add Layer Control to toggle between base layers ---
-    #folium.LayerControl(collapsed=False).add_to(base_map)
-    folium.LayerControl().add_to(base_map)
-
+        fg_dict[label]=fg
 
     # --- Display map in Streamlit ---
     st_folium(
         base_map,
-        feature_group_to_add=[choropleth, legend],
+        feature_group_to_add=fg_dict[selected_label],
         height=600,
         use_container_width=True,
         returned_objects=[],
