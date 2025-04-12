@@ -18,27 +18,28 @@ def matplotlib_to_step_colormap(cmap_name, bins, nan_color="#d3d3d3"):
     )
 
 def add_custom_choropleth(
-    fmap,
-    gdf,
-    value_column,
-    key_on,
-    bins=None,
-    cmap="magma_r",
-    nan_color="#d3d3d3",
-    fill_opacity=0.6,
-    line_opacity=0.2,
-    border_color="darkgray",
-    popup_fields=None,
-    popup_aliases=None,
-    show_legend=True,
-    legend_caption=None,
-    colorbar_width=300,
+        fmap=None,
+        gdf=None,
+        value_column=None,
+        key_on=None,
+        bins=None,
+        cmap="magma_r",
+        nan_color="#d3d3d3",
+        fill_opacity=0.6,
+        line_opacity=0.2,
+        border_color="darkgray",
+        popup_fields=None,
+        popup_aliases=None,
+        show_legend=True,
+        legend_caption=None,
+        colorbar_width=300,
 ):
     """
-    Add a more efficient custom choropleth layer using folium.GeoJson and precomputed colors.
-    Supports both branca and matplotlib colormaps.
+    Create a folium.GeoJson choropleth layer with optional colormap,
+    supporting both branca and matplotlib colormaps.
+
+    Returns (choropleth_layer, colormap). If fmap is provided, layers are added automatically.
     """
-    # Ensure data is numeric
     values = pd.to_numeric(gdf[value_column], errors="coerce")
 
     # Define bins if not provided
@@ -55,14 +56,14 @@ def add_custom_choropleth(
     # Try branca first, fallback to matplotlib colormap
     try:
         branca_cmap = getattr(branca.colormap.linear, cmap)
-        colormap = branca_cmap.scale(bins[0], bins[-1]).to_step(n=len(bins)-1)
+        colormap = branca_cmap.scale(bins[0], bins[-1]).to_step(n=len(bins) - 1)
     except AttributeError:
         colormap = matplotlib_to_step_colormap(cmap, bins, nan_color)
 
     if legend_caption:
         colormap.caption = legend_caption
 
-    # Assign colors to each row
+    # Assign color to each geometry
     gdf["__choropleth_color__"] = values.apply(lambda x: colormap(x) if pd.notnull(x) else nan_color)
 
     # Create the GeoJson layer with color styling
@@ -87,10 +88,12 @@ def add_custom_choropleth(
             localize=True,
         ) if popup_fields else None,
     )
-    choropleth_layer.add_to(fmap)
 
-    if show_legend:
-        colormap.width = colorbar_width
-        colormap.add_to(fmap)
+    # Optionally add to map
+    if fmap is not None:
+        choropleth_layer.add_to(fmap)
+        if show_legend:
+            colormap.width = colorbar_width
+            colormap.add_to(fmap)
 
-    return choropleth_layer
+    return choropleth_layer, colormap
