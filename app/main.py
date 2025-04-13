@@ -9,7 +9,7 @@ from shapely.geometry import GeometryCollection
 
 from core.maplayers import add_custom_choropleth
 
-APP_VERSION = "v0.2.0-dev1"
+APP_VERSION = "v0.2.0a1"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census Tracts 2021")
