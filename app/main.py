@@ -114,14 +114,12 @@ if gdf is not None and df is not None:
             fmap=None,
             gdf=gdf,
             value_column=metric,
-            popup_fields=["CTNAME", metric],
-            popup_aliases=["Tract:", label],
+            popup_fields=[JOIN_KEY, "CTNAME", metric], #["CTNAME", metric],
+            popup_aliases=["DGUID:", "Name:", "Value:"],#["Tract:", label],
         )
         fg = folium.FeatureGroup(name=label, overlay=True)  # Treat as overlay
         if colorbar:
-            #colormap= colorbar
             colorbars[label] = colorbar
-        #    fg.add_child(colorbar)
         fg.add_child(choropleth)
         fg_dict[label]=fg
 

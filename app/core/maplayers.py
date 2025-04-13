@@ -48,7 +48,7 @@ def add_custom_choropleth(
         popup_aliases=None,
         show_legend=True,
         legend_caption=None,
-        colorbar_width=300,
+        colorbar_width=275,
 ):
     """
     Create a folium.GeoJson choropleth layer with optional colormap,
@@ -112,8 +112,6 @@ def add_custom_choropleth(
     # Create colorbar as a MacroElement (optional)
     if show_legend:
         colormap.width = colorbar_width
-        #safe_id = f"legend-{(legend_caption or value_column).replace(' ', '_').replace('(', '').replace(')', '').replace('.', '')}"
-        #colorbar_layer = ColorbarElement(colormap, element_id=safe_id)
         colorbar_layer = colormap
     else:
         colorbar_layer = None
