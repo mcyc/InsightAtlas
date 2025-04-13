@@ -144,10 +144,20 @@ if gdf is not None and df is not None:
     legend_html = colorbars[selected_label]._repr_html_()
     st.markdown(
         f"""
-        <div style='float: right; width: fit-content; margin-right: 10px; margin-top: -650px;'>
-            {legend_html}
+        <div style="
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 10px;
+            margin-top: -650px;
+        ">
+            <div style="
+                padding: 6px;
+                border-radius: 4px;
+                max-width: 100%;
+            ">
+                {legend_html}
+            </div>
         </div>
-        <div style='clear: both'></div>
         """,
         unsafe_allow_html=True
     )
