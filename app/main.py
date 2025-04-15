@@ -5,9 +5,9 @@ import folium
 from streamlit_folium import st_folium
 from pathlib import Path
 import requests
-from shapely.geometry import GeometryCollection
 
 from core.maplayers import add_custom_choropleth
+from utils.map_utils import compute_map_view
 
 APP_VERSION = "v0.3.0.dev1"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
@@ -108,13 +108,7 @@ if gdf is not None and df is not None:
     gdf = gdf.merge(df, on=JOIN_KEY, how="left")
 
     # --- Compute center ---
-    unioned = gdf.geometry.union_all()
-    if isinstance(unioned, GeometryCollection):
-        parts = [geom for geom in unioned.geoms if geom.area > 0]
-        centroid = GeometryCollection(parts).centroid if parts else unioned.centroid
-    else:
-        centroid = unioned.centroid
-    center = [centroid.y, centroid.x]
+    center, zoom_start = compute_map_view(gdf)
 
     # --- Base map ---
     base_map = folium.Map(location=center, zoom_start=zoom_start, tiles="cartodbpositron")
