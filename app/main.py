@@ -9,7 +9,7 @@ import requests
 from core.maplayers import add_custom_choropleth
 from utils.map_utils import compute_map_view
 
-APP_VERSION = "v0.3.0a1"
+APP_VERSION = "v0.3.0b1"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census Tracts 2021")
@@ -19,9 +19,6 @@ use_cloud_data = True
 CLOUD_DATA_DIR = "data/cloud"
 CLOUD_CSV_URL = "https://drive.google.com/uc?export=download&id=1ERHEMcBhyPcgYq2r5iwxEO9KIH45TAN7"
 CLOUD_GEOJSON_URL = "https://drive.google.com/uc?export=download&id=1galoO4I9wobrq0lo-ojPCKg0B6ZHrlob"
-
-# default zoom
-zoom_start = 9.4
 
 # default city
 default_metro = "Vancouver"
@@ -59,6 +56,9 @@ METRICS = {
     f"Immigrated in 2016-2021 {unit}": "immigrated_af2016"
 }
 
+# any aditional columns to add to the joint table
+columns_others = ['riding_name']
+
 @st.cache_data
 def load_geojson(path):
     logs = []
@@ -89,7 +89,7 @@ gdf, logs = load_geojson(GEOJSON_PATH)
 df = load_ct_values(CSV_PATH)
 
 if gdf is not None and df is not None:
-    df = df[[JOIN_KEY, "metro"] + list(METRICS.values())].copy()
+    df = df[[JOIN_KEY, "metro"] + list(METRICS.values()) + columns_others].copy()
 
     # --- Always filter by metro ---
     metro_options = sorted(df["metro"].dropna().unique())
@@ -123,8 +123,8 @@ if gdf is not None and df is not None:
             fmap=None,
             gdf=gdf,
             value_column=metric,
-            popup_fields=[JOIN_KEY, "CTNAME", metric],
-            popup_aliases=["DGUID:", "Name:", "Value:"],
+            popup_fields=["CTUID", "riding_name", metric], #JOIN_KEY,
+            popup_aliases=["ID:", "Riding:", "Value:"], #"DGUID:",
         )
         fg = folium.FeatureGroup(name=label, overlay=True)
         if colorbar:
