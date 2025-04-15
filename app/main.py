@@ -9,7 +9,7 @@ import requests
 from core.maplayers import add_custom_choropleth
 from utils.map_utils import compute_map_view
 
-APP_VERSION = "v0.3.0.dev1"
+APP_VERSION = "v0.3.0a1"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census Tracts 2021")
@@ -96,7 +96,9 @@ if gdf is not None and df is not None:
     # if the default isn't in the table, select the first metro available
     if default_metro not in metro_options:
         default_metro = metro_options[0]
-    selected_metro = st.sidebar.selectbox("Select metro area:", metro_options, index=metro_options.index(default_metro))
+    selected_metro = st.sidebar.selectbox("Select metro area (searchable):",
+                                          metro_options, index=metro_options.index(default_metro),
+                                          help="Tip: you can use the dropdown a search bar too")
 
     # --- Sidebar metric selection ---
     selected_label = st.sidebar.selectbox("Select metric to visualize:", list(METRICS.keys()))
