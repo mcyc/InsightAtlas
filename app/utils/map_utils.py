@@ -12,8 +12,6 @@ def compute_map_view(gdf):
     lat_diff = abs(maxy - miny)
     max_diff = lat_diff
 
-    print(f"max_diff: {max_diff}")
-
     # Heuristic to estimate zoom level (log scale inverse to coverage width)
     # Based on Web Mercator zoom level scale (~156543m per pixel at zoom 0)
     if max_diff == 0:
