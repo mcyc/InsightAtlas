@@ -27,12 +27,16 @@ def matplotlib_to_step_colormap(cmap_name, bins):
     cmap = cm.get_cmap(cmap_name)
     norm = mcolors.Normalize(vmin=bins[0], vmax=bins[-1])
     colors = [mcolors.to_hex(cmap(norm(v))) for v in bins[:-1]]
-    return branca.colormap.StepColormap(
+    colormap = branca.colormap.StepColormap(
         colors=colors,
         index=bins,
         vmin=bins[0],
         vmax=bins[-1],
     )
+
+    # Format tick labels to 1 decimal place
+    colormap.tick_labels = [f"{v:.1f}" for v in bins]
+    return colormap
 
 def add_custom_choropleth(
         fmap=None,
@@ -65,19 +69,21 @@ def add_custom_choropleth(
 
     # Define bins if not provided
     if bins is None:
-        min_val = values.min()
-        max_val = values.max()
+        min_val = np.nanmin(values)
+        max_val = np.nanmax(values)
         if pd.isna(min_val) or pd.isna(max_val):
             raise ValueError("No valid values for choropleth")
         if abs(max_val - min_val) < 1e-6:
             min_val -= 0.01
             max_val += 0.01
         bins = np.linspace(min_val, max_val, 9)
+        bins = np.round(bins, 1)
 
     # Try branca first, fallback to matplotlib colormap
     try:
         branca_cmap = getattr(branca.colormap.linear, cmap)
         colormap = branca_cmap.scale(bins[0], bins[-1]).to_step(n=len(bins) - 1)
+
     except AttributeError:
         colormap = matplotlib_to_step_colormap(cmap, bins)
 

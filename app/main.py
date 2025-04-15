@@ -5,11 +5,11 @@ import folium
 from streamlit_folium import st_folium
 from pathlib import Path
 import requests
-from shapely.geometry import GeometryCollection
 
 from core.maplayers import add_custom_choropleth
+from utils.map_utils import compute_map_view
 
-APP_VERSION = "v0.2.0a1"
+APP_VERSION = "v0.3.0a1"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census Tracts 2021")
@@ -22,6 +22,9 @@ CLOUD_GEOJSON_URL = "https://drive.google.com/uc?export=download&id=1galoO4I9wob
 
 # default zoom
 zoom_start = 9.4
+
+# default city
+default_metro = "Vancouver"
 
 def download_from_gdrive(url, dest_path):
     dest_path = Path(dest_path)
@@ -86,22 +89,28 @@ gdf, logs = load_geojson(GEOJSON_PATH)
 df = load_ct_values(CSV_PATH)
 
 if gdf is not None and df is not None:
-    df = df[[JOIN_KEY] + list(METRICS.values())].copy()
-    gdf = gdf[gdf[JOIN_KEY].isin(df[JOIN_KEY])]
-    gdf = gdf.merge(df, on=JOIN_KEY, how="left")
+    df = df[[JOIN_KEY, "metro"] + list(METRICS.values())].copy()
 
-    # --- Sidebar selection ---
+    # --- Always filter by metro ---
+    metro_options = sorted(df["metro"].dropna().unique())
+    # if the default isn't in the table, select the first metro available
+    if default_metro not in metro_options:
+        default_metro = metro_options[0]
+    selected_metro = st.sidebar.selectbox("Select metro area (searchable):",
+                                          metro_options, index=metro_options.index(default_metro),
+                                          help="Tip: you can use the dropdown a search bar too")
+
+    # --- Sidebar metric selection ---
     selected_label = st.sidebar.selectbox("Select metric to visualize:", list(METRICS.keys()))
     selected_metric = METRICS[selected_label]
 
+    # --- Filter data by metro ---
+    df = df[df["metro"] == selected_metro]
+    gdf = gdf[gdf[JOIN_KEY].isin(df[JOIN_KEY])]
+    gdf = gdf.merge(df, on=JOIN_KEY, how="left")
+
     # --- Compute center ---
-    unioned = gdf.geometry.union_all()
-    if isinstance(unioned, GeometryCollection):
-        parts = [geom for geom in unioned.geoms if geom.area > 0]
-        centroid = GeometryCollection(parts).centroid if parts else unioned.centroid
-    else:
-        centroid = unioned.centroid
-    center = [centroid.y, centroid.x]
+    center, zoom_start = compute_map_view(gdf)
 
     # --- Base map ---
     base_map = folium.Map(location=center, zoom_start=zoom_start, tiles="cartodbpositron")
@@ -114,23 +123,22 @@ if gdf is not None and df is not None:
             fmap=None,
             gdf=gdf,
             value_column=metric,
-            popup_fields=[JOIN_KEY, "CTNAME", metric], #["CTNAME", metric],
-            popup_aliases=["DGUID:", "Name:", "Value:"],#["Tract:", label],
+            popup_fields=[JOIN_KEY, "CTNAME", metric],
+            popup_aliases=["DGUID:", "Name:", "Value:"],
         )
-        fg = folium.FeatureGroup(name=label, overlay=True)  # Treat as overlay
+        fg = folium.FeatureGroup(name=label, overlay=True)
         if colorbar:
             colorbars[label] = colorbar
         fg.add_child(choropleth)
-        fg_dict[label]=fg
+        fg_dict[label] = fg
 
-    # Label the map
+    # --- Display map ---
     st.markdown(f"""
     <div>
-      <h4 style='font-size: 1rem; margin-top: -1.3rem; margin-bottom: -1.5rem; opacity: 0.8;'>{selected_label}</h4>
+      <h4 style='font-size: 1rem; margin-top: -1.3rem; margin-bottom: -1.5rem; opacity: 0.8;'>{selected_label} - {selected_metro} </h4>
     </div>
     """, unsafe_allow_html=True)
 
-    # --- Display map in Streamlit ---
     st_folium(
         base_map,
         feature_group_to_add=fg_dict[selected_label],
@@ -140,7 +148,7 @@ if gdf is not None and df is not None:
         key="map"
     )
 
-    # Show colorbar separately
+    # --- Show colorbar ---
     legend_html = colorbars[selected_label]._repr_html_()
     st.markdown(
         f"""
