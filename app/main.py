@@ -9,7 +9,7 @@ import requests
 from core.maplayers import add_custom_choropleth
 from utils.map_utils import compute_map_view
 
-APP_VERSION = "v0.3.0b1"
+APP_VERSION = "v0.3.0"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census Tracts 2021")
