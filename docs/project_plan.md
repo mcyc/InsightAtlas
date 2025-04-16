@@ -37,8 +37,8 @@ The initial focus is on enabling community canvassing teams to explore demograph
 2. [x] Join and display CT indicator data
 3. [x] Enable dropdown to select indicator for choropleth coloring
 4. [x] Add popups (on click) with CT-level stats
-5. [ ] Ensure map responsiveness and rendering performance on mobile
-6. [ ] (Bonus) Apply `simplify()` for geometry efficiency and `highlight_function` for map interactivity
+5. [x] Ensure map responsiveness and rendering performance on mobile
+6. [x] (Bonus) Apply `simplify()` for geometry efficiency and `highlight_function` for map interactivity
 
 ---
 
