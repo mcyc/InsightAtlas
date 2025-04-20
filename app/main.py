@@ -1,13 +1,10 @@
 import streamlit as st
-import geopandas as gpd
-import pandas as pd
 import folium
 from streamlit_folium import st_folium
-from pathlib import Path
-import requests
 
 from core.maplayers import add_custom_choropleth
 from utils.map_utils import compute_map_view
+from utils.data_loader import load_geojson, load_ct_values, download_from_gdrive
 
 APP_VERSION = "v0.4.0.dev1"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
@@ -22,22 +19,6 @@ CLOUD_GEOJSON_URL = "https://drive.google.com/uc?export=download&id=1galoO4I9wob
 
 # default city
 default_metro = "Vancouver"
-
-def download_from_gdrive(url, dest_path):
-    dest_path = Path(dest_path)
-    dest_path.parent.mkdir(parents=True, exist_ok=True)
-    if not dest_path.exists():
-        status = st.empty()
-        status.info(f"Downloading {dest_path.name}...")
-        r = requests.get(url)
-        if r.status_code == 200 and "text/html" not in r.headers.get("Content-Type", ""):
-            dest_path.write_bytes(r.content)
-        else:
-            status.empty()
-            st.error(f"Download failed or invalid format for {dest_path.name}")
-            return None
-        status.empty()
-    return str(dest_path)
 
 if use_cloud_data:
     GEOJSON_PATH = download_from_gdrive(CLOUD_GEOJSON_URL, f"{CLOUD_DATA_DIR}/ct_boundaries.geojson")
@@ -60,31 +41,6 @@ METRICS = {
 
 # any aditional columns to add to the joint table
 columns_others = ['riding_name']
-
-@st.cache_data
-def load_geojson(path):
-    logs = []
-    try:
-        gdf = gpd.read_file(path)
-        if (~gdf.geometry.is_valid).sum() > 0:
-            logs.append("Fixed invalid geometries using buffer(0).")
-            gdf["geometry"] = gdf["geometry"].buffer(0)
-        if gdf.crs and gdf.crs.to_string() != "EPSG:4326":
-            logs.append(f"Reprojected from {gdf.crs} to EPSG:4326.")
-            gdf = gdf.to_crs(epsg=4326)
-        gdf["geometry"] = gdf["geometry"].simplify(0.0001, preserve_topology=True)
-        return gdf, logs
-    except Exception as e:
-        st.error(f"Failed to load GeoJSON: {e}")
-        return None, []
-
-@st.cache_data
-def load_ct_values(path):
-    try:
-        return pd.read_csv(path)
-    except Exception as e:
-        st.error(f"Failed to load CT values CSV: {e}")
-        return None
 
 # --- Load and merge ---
 gdf, logs = load_geojson(GEOJSON_PATH)
