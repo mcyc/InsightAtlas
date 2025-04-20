@@ -53,6 +53,8 @@ def add_custom_choropleth(
         show_legend=True,
         legend_caption=None,
         colorbar_width=275,
+        style_function=True,
+        highlight_function=True,
 ):
     """
     Create a folium.GeoJson choropleth layer with optional colormap,
@@ -93,26 +95,41 @@ def add_custom_choropleth(
     # Assign color to each geometry
     gdf["__choropleth_color__"] = values.apply(lambda x: colormap(x) if pd.notnull(x) else nan_color)
 
+    kwargs = {}
+
+    if style_function:
+        if callable(style_function):
+            kwargs['style_function']=style_function
+        else:
+            kwargs['style_function']=lambda feature: {
+                "fillColor": feature["properties"]["__choropleth_color__"],
+                "color": border_color,
+                "weight": 1.5,
+                "fillOpacity": fill_opacity,
+            }
+
+    if highlight_function:
+        if callable(highlight_function):
+            kwargs['highlight_function'] = highlight_function
+        else:
+            kwargs['highlight_function']=lambda feature: {
+                "weight": 3,
+                "color": "#1f77b4",
+                "fillOpacity": 0.2,
+            }
+
+    if popup_fields:
+        kwargs['popup']=folium.GeoJsonPopup(
+            fields=popup_fields or [value_column],
+            aliases=popup_aliases or [value_column],
+            localize=True,
+        )
+
     # Create the GeoJson layer with color styling
     choropleth_layer = folium.GeoJson(
         gdf,
         name=legend_caption or value_column,
-        style_function=lambda feature: {
-            "fillColor": feature["properties"]["__choropleth_color__"],
-            "color": border_color,
-            "weight": 1.5,
-            "fillOpacity": fill_opacity,
-        },
-        highlight_function=lambda feature: {
-            "weight": 3,
-            "color": "#1f77b4",
-            "fillOpacity": 0.2,
-        },
-        popup=folium.GeoJsonPopup(
-            fields=popup_fields or [value_column],
-            aliases=popup_aliases or [value_column],
-            localize=True,
-        ) if popup_fields else None,
+        **kwargs
     )
 
     # Create colorbar as a MacroElement (optional)
