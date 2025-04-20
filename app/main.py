@@ -1,4 +1,5 @@
 import streamlit as st
+import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
 
@@ -6,7 +7,7 @@ from core.maplayers import add_custom_choropleth
 from utils.map_utils import compute_map_view
 from utils.data_loader import load_geojson, load_ct_values, download_from_gdrive
 
-APP_VERSION = "v0.4.0.dev1"
+APP_VERSION = "v0.4.0.dev2"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census Tracts 2021")
