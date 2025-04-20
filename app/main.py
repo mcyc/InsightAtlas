@@ -9,13 +9,13 @@ import requests
 from core.maplayers import add_custom_choropleth
 from utils.map_utils import compute_map_view
 
-APP_VERSION = "v0.3.0"
+APP_VERSION = "v0.4.0.dev1"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census Tracts 2021")
 
 # --- Configuration ---
-use_cloud_data = True
+use_cloud_data = False
 CLOUD_DATA_DIR = "data/cloud"
 CLOUD_CSV_URL = "https://drive.google.com/uc?export=download&id=1ERHEMcBhyPcgYq2r5iwxEO9KIH45TAN7"
 CLOUD_GEOJSON_URL = "https://drive.google.com/uc?export=download&id=1galoO4I9wobrq0lo-ojPCKg0B6ZHrlob"
@@ -43,8 +43,10 @@ if use_cloud_data:
     GEOJSON_PATH = download_from_gdrive(CLOUD_GEOJSON_URL, f"{CLOUD_DATA_DIR}/ct_boundaries.geojson")
     CSV_PATH = download_from_gdrive(CLOUD_CSV_URL, f"{CLOUD_DATA_DIR}/ct_values.csv")
 else:
-    GEOJSON_PATH = "config/prototype/ct_boundaries.geojson"
-    CSV_PATH = "config/prototype/ct_values.csv"
+    dir_local = "data/local"
+    GEOJSON_PATH = f"{dir_local}/ct_boundaries.geojson"
+    GEOJSON_PATH_2 = f"{dir_local}/FED_ED_boundaries_2023.geojson"
+    CSV_PATH = f"{dir_local}/ct_values.csv"
 
 JOIN_KEY = "DGUID"
 unit = "(Pop. %)"
@@ -86,6 +88,7 @@ def load_ct_values(path):
 
 # --- Load and merge ---
 gdf, logs = load_geojson(GEOJSON_PATH)
+gdf2, logs2 = load_geojson(GEOJSON_PATH_2)
 df = load_ct_values(CSV_PATH)
 
 if gdf is not None and df is not None:
@@ -109,27 +112,74 @@ if gdf is not None and df is not None:
     gdf = gdf[gdf[JOIN_KEY].isin(df[JOIN_KEY])]
     gdf = gdf.merge(df, on=JOIN_KEY, how="left")
 
+    # Ensure both GeoDataFrames are in the same CRS
+    assert gdf.crs == gdf2.crs, "GeoDataFrames must be in the same CRS"
+    # Spatial join to keep only EDs that intersect with the selected metro's tracts
+    gdf2_filtered = gpd.sjoin(gdf2, gdf, how="inner", predicate="intersects").drop_duplicates(
+        subset=gdf2.columns.tolist())
+
     # --- Compute center ---
     center, zoom_start = compute_map_view(gdf)
 
     # --- Base map ---
     base_map = folium.Map(location=center, zoom_start=zoom_start, tiles="cartodbpositron")
 
+    # --- Add electoral districts boundaries ---
+    label_ed = "Electoral District"
+    show_ed = st.sidebar.checkbox("Show Electoral Districts", value=False)
+
     # --- Add each metric as a separate (exclusive) base layer ---
     fg_dict = {}
     colorbars = {}
     for label, metric in METRICS.items():
+
+        # specify the popup info
+        popup_fields=["CTUID", "riding_name", metric] #JOIN_KEY,
+        popup_aliases=["ID:", "Riding:", "Value:"] #"DGUID:",
+
         choropleth, colorbar = add_custom_choropleth(
             fmap=None,
             gdf=gdf,
             value_column=metric,
-            popup_fields=["CTUID", "riding_name", metric], #JOIN_KEY,
-            popup_aliases=["ID:", "Riding:", "Value:"], #"DGUID:",
+            popup_fields=popup_fields,
+            popup_aliases=popup_aliases
         )
         fg = folium.FeatureGroup(name=label, overlay=True)
         if colorbar:
             colorbars[label] = colorbar
+
         fg.add_child(choropleth)
+
+        if show_ed:
+            # add electoral district layer
+            ed_layer = folium.GeoJson(
+                gdf2_filtered,
+                name="ED_bounds",
+                style_function=lambda feature: {
+                    "fillColor": None,
+                    "color": "#4C6E91", #"DimGray" "#4C6E91"
+                    "weight": 1.8,
+                    "fillOpacity": 0.0,
+                },
+            )
+            fg.add_child(ed_layer)
+
+            # place a popup-only layer on the top
+            interactive_layer, _ = add_custom_choropleth(
+                fmap=None,
+                gdf=gdf,
+                value_column=metric,
+                popup_fields=popup_fields,
+                popup_aliases=popup_aliases,
+                style_function=lambda feature: {
+                    "color": "transparent",
+                    "weight": 0,
+                    "fillOpacity": 0.0,
+                },
+            )
+
+            fg.add_child(interactive_layer)
+
         fg_dict[label] = fg
 
     # --- Display map ---
