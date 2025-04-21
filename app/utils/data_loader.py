@@ -87,3 +87,56 @@ def download_from_gdrive(url, dest_path):
             return None
         status.empty()
     return str(dest_path)
+
+@st.cache_data
+def load_geojson_from_parquet(_geojson_df, labe_ref, parquet_path, subset=["DAUID"]):
+    """
+    Load geometry from a Parquet file and filter it by spatial intersection
+    with a reference GeoDataFrame. Returns the result as a GeoJSON string.
+
+    This function is useful for dynamically filtering large spatial datasets
+    (e.g., dissemination areas) using a smaller reference geometry (e.g., an
+    electoral district), while benefiting from Streamlit's caching.
+
+    Parameters
+    ----------
+    _geojson_df : geopandas.GeoDataFrame
+        A reference GeoDataFrame containing the geometry to intersect against.
+        Must have a valid CRS (or will be reprojected to match the Parquet data).
+    labe_ref : str
+        A string label used to identify this filtering operation in logs or
+        error messages. Also used to ensure cache uniqueness.
+    parquet_path : str
+        Path to the Parquet file containing the geometry to be filtered.
+        The file must contain a 'geometry' column and any fields listed in `subset`.
+    subset : list of str, optional
+        A list of column names (in addition to 'geometry') to retain in the final output.
+        Default is ["DAUID"].
+
+    Returns
+    -------
+    geojson_str : str
+        A GeoJSON-formatted string containing only the geometries that intersect
+        with the reference geometry.
+    """
+    try:
+        columns = ["geometry"] + subset
+
+        # Load DA geometries
+        gdf_read = gpd.read_parquet(parquet_path, columns=columns)
+
+        if gdf_read.crs is None:
+            gdf_read.set_crs(epsg=4326, inplace=True)
+
+        if _geojson_df.crs != gdf_read.crs:
+            _geojson_df = _geojson_df.to_crs(gdf_read.crs)
+
+        # Spatial join
+        gdf_filtered = gpd.sjoin(gdf_read, _geojson_df, how="inner", predicate="intersects")
+        gdf_filtered = gdf_filtered.drop_duplicates(subset=subset)
+
+        return gdf_filtered[columns].to_json()
+
+    except Exception as e:
+        st.error(f"Error filtering DAs for '{labe_ref}': {e}")
+        return "{}"
