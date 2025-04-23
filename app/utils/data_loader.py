@@ -39,7 +39,7 @@ def load_geojson(path):
 @st.cache_data
 def load_ct_values(path):
     """
-    Load census tract data from a CSV file.
+    Load table from a CSV file.
 
     Parameters
     ----------
@@ -54,7 +54,28 @@ def load_ct_values(path):
     try:
         return pd.read_csv(path)
     except Exception as e:
-        st.error(f"Failed to load CT values CSV: {e}")
+        st.error(f"Failed to load CSV: {e}")
+        return None
+
+@st.cache_data
+def load_parquet(path, **kwargs):
+    """
+    Load table from a parquet file.
+
+    Parameters
+    ----------
+    path : str
+        Path to the parquet file.
+
+    Returns
+    -------
+    df : pandas.DataFrame or None
+        Loaded DataFrame, or None if reading fails.
+    """
+    try:
+        return pd.read_parquet(path, **kwargs)
+    except Exception as e:
+        st.error(f"Failed to load parquet: {e}")
         return None
 
 def download_from_gdrive(url, dest_path):
@@ -89,10 +110,9 @@ def download_from_gdrive(url, dest_path):
     return str(dest_path)
 
 @st.cache_data
-def load_geojson_from_parquet(_geojson_df, labe_ref, parquet_path, subset=["DAUID"]):
+def load_geojson_from_parquet(_geojson_df, _subset, labe_ref, parquet_path):
     """
-    Load geometry from a Parquet file and filter it by spatial intersection
-    with a reference GeoDataFrame. Returns the result as a GeoJSON string.
+    with a reference GeoDataFrame. Returns the result as a GeoDataFrame.
 
     This function is useful for dynamically filtering large spatial datasets
     (e.g., dissemination areas) using a smaller reference geometry (e.g., an
@@ -103,24 +123,24 @@ def load_geojson_from_parquet(_geojson_df, labe_ref, parquet_path, subset=["DAUI
     _geojson_df : geopandas.GeoDataFrame
         A reference GeoDataFrame containing the geometry to intersect against.
         Must have a valid CRS (or will be reprojected to match the Parquet data).
+    _subset : list of str, optional
+        A list of column names (in addition to 'geometry') to retain in the final output.
+        Default is ["DAUID"].
     labe_ref : str
         A string label used to identify this filtering operation in logs or
         error messages. Also used to ensure cache uniqueness.
     parquet_path : str
         Path to the Parquet file containing the geometry to be filtered.
         The file must contain a 'geometry' column and any fields listed in `subset`.
-    subset : list of str, optional
-        A list of column names (in addition to 'geometry') to retain in the final output.
-        Default is ["DAUID"].
 
     Returns
     -------
-    geojson_str : str
-        A GeoJSON-formatted string containing only the geometries that intersect
+    gdf_filtered : str
+        A GeoDataFrame containing only the geometries that intersect
         with the reference geometry.
     """
     try:
-        columns = ["geometry"] + subset
+        columns = ["geometry"] + _subset
 
         # Load DA geometries
         gdf_read = gpd.read_parquet(parquet_path, columns=columns)
@@ -133,9 +153,7 @@ def load_geojson_from_parquet(_geojson_df, labe_ref, parquet_path, subset=["DAUI
 
         # Spatial join
         gdf_filtered = gpd.sjoin(gdf_read, _geojson_df, how="inner", predicate="intersects")
-        gdf_filtered = gdf_filtered.drop_duplicates(subset=subset)
-
-        return gdf_filtered[columns].to_json()
+        return gdf_filtered.drop_duplicates(subset=_subset)
 
     except Exception as e:
         st.error(f"Error filtering DAs for '{labe_ref}': {e}")
