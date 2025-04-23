@@ -22,8 +22,17 @@ def load_geojson(path):
         Log messages about geometry fixing or reprojection steps.
     """
     logs = []
+
+    # get the file extension
+    file_extension = Path(path).suffix
+    print(f"file_extension: {file_extension}")
+
     try:
-        gdf = gpd.read_file(path)
+        if file_extension == ".parquet":
+            gdf = gpd.read_parquet(path)
+        else:
+            gdf = gpd.read_file(path)
+
         if (~gdf.geometry.is_valid).sum() > 0:
             logs.append("Fixed invalid geometries using buffer(0).")
             gdf["geometry"] = gdf["geometry"].buffer(0)
