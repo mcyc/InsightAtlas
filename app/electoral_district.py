@@ -14,6 +14,7 @@ st.subheader("Census 2021 - Dissemination Areas")
 
 # --- Configuration ---
 table_file = "census_2021_combined.parquet"
+table_file = "census_2021_MCP.parquet"
 geojson_file = "DA_boundaries.parquet"
 geojson_file2 = "FED_ED_boundaries_2023.parquet"
 
@@ -45,6 +46,19 @@ METRICS = {
     f"Visible Minority {unit}": "viz_minority",
     f"Bachelor's or higher {unit}": "edu_abvBach",
     f"Immigrated in 2016-2021 {unit}": "immigrated_af2016"
+}
+# over writing above tempalte for now to make branch merging easier
+METRICS = {
+    f"Mobilization Score": "Mobilization_Score",
+    f"Age 20-34 women {unit}:": "age_20to34_wmn",
+    f"Age 20-34 men {unit}:": "age_20to34_men",
+    f"Age 20-34 {unit}": "age_20to34",
+    f"Age 60+ women {unit}:": "age_60plus_wmn",
+    f"Age 60+ men {unit}:": "age_60plus_men",
+    f"Age 60+ {unit}": "age_60plus",
+    f"Renting {unit}": "renting",
+    f"Visible Minority {unit}": "viz_minority",
+    f"Bachelor's or higher {unit}": "edu_abvBach",
 }
 
 # any aditional columns to add to the joint table
@@ -187,3 +201,15 @@ if df is not None:
                 st.info(msg)
 else:
     st.warning("Unable to load or render CT boundaries.")
+
+st.sidebar.markdown(
+    f"""
+    <div style='margin-bottom: 0.2em;'><h5>Description:</h5></div>
+    <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.5em; margin-top: -0.8em;'>
+        The mobilization score is calculated based on the information described in the Canadian Climate Engagement
+        <a href="https://link-url-here.org" target="_blank">article</a><br>
+        and the Canadian Census 2021 data.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
