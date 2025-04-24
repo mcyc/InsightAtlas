@@ -25,7 +25,6 @@ def load_geojson(path):
 
     # get the file extension
     file_extension = Path(path).suffix
-    print(f"file_extension: {file_extension}")
 
     try:
         if file_extension == ".parquet":
