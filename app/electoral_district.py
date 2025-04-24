@@ -206,7 +206,7 @@ st.sidebar.markdown(
     <div style='margin-bottom: 0.2em;'><h5>Description:</h5></div>
     <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.5em; margin-top: -0.8em;'>
         The mobilization score is calculated based on the information described in the Canadian Climate Engagement
-        <a href="https://link-url-here.org" target="_blank">article</a><br> using metricts drawn from
+        <a href="https://reclimate.ca/the-five-canadas-engaging-canadians-on-climate-change/" target="_blank">article</a><br> using metricts drawn from
         and the Canadian Census 2021 dissemination area (DA) data.
     </div>
     """,
