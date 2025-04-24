@@ -161,7 +161,12 @@ def load_geojson_from_parquet(_geojson_df, _subset, labe_ref, parquet_path):
             _geojson_df = _geojson_df.to_crs(gdf_read.crs)
 
         # Spatial join
-        gdf_filtered = gpd.sjoin(gdf_read, _geojson_df, how="inner", predicate="intersects")
+        # shrink the reference first to avoid including the "touching" ones
+        tolerance = 100  # meters or degrees depending on CRS
+        ref_shrink = _geojson_df.copy()
+        ref_shrink["geometry"] = ref_shrink.geometry.buffer(-tolerance)
+        gdf_filtered = gpd.sjoin(gdf_read, ref_shrink, how="inner", predicate="intersects")
+
         return gdf_filtered.drop_duplicates(subset=_subset)
 
     except Exception as e:
