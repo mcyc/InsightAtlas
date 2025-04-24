@@ -7,29 +7,33 @@ from utils.map_utils import compute_map_view
 from utils.data_loader import load_geojson, download_from_gdrive,\
     load_geojson_from_parquet, load_parquet
 
-APP_VERSION = "v0.4.0.dev4"
+APP_VERSION = "v0.4.0.dev5"
 st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 st.subheader("Census 2021 - Dissemination Areas")
 
 # --- Configuration ---
-use_cloud_data = False
-CLOUD_DATA_DIR = "data/cloud"
-CLOUD_CSV_URL = "https://drive.google.com/uc?export=download&id=1ERHEMcBhyPcgYq2r5iwxEO9KIH45TAN7"
-CLOUD_GEOJSON_URL = "https://drive.google.com/uc?export=download&id=1galoO4I9wobrq0lo-ojPCKg0B6ZHrlob"
-
 table_file = "census_2021_combined.parquet"
 geojson_file = "DA_boundaries.parquet"
+geojson_file2 = "FED_ED_boundaries_2023.parquet"
+
+use_cloud_data = True
+CLOUD_DATA_DIR = "data/cloud"
+gcloud_root = "https://drive.google.com/uc?export=download&id="
+CLOUD_CSV_URL = f"{gcloud_root}1feWg-8hir4OmMChixJF59OLDkGoroIsK"
+CLOUD_GEOJSON_URL = f"{gcloud_root}1cpnwtFmsH-9xypp55JVxfoRjH86_R3Dl"
+CLOUD_GEOJSON_URL_2 = f"{gcloud_root}1M5o82kpwWLTCDXr8Ld-4bOKknvxKUIwk"
 
 if use_cloud_data:
-    GEOJSON_PATH = download_from_gdrive(CLOUD_GEOJSON_URL, f"{CLOUD_DATA_DIR}/{geojson_file}")
     TABLE_PATH = download_from_gdrive(CLOUD_CSV_URL, f"{CLOUD_DATA_DIR}/{table_file}")
-else:
-    dir_local = "data/local"
-    GEOJSON_PATH = f"{dir_local}/{geojson_file}"
-    TABLE_PATH = f"{dir_local}/{table_file}"
+    GEOJSON_PATH = download_from_gdrive(CLOUD_GEOJSON_URL, f"{CLOUD_DATA_DIR}/{geojson_file}")
+    GEOJSON_PATH_2 = download_from_gdrive(CLOUD_GEOJSON_URL_2, f"{CLOUD_DATA_DIR}/{geojson_file2}")
 
-GEOJSON_PATH_2 = f"{dir_local}/FED_ED_boundaries_2023.parquet"
+else:
+    workdir = "data/local"
+    TABLE_PATH = f"{workdir}/{table_file}"
+    GEOJSON_PATH = f"{workdir}/{geojson_file}"
+    GEOJSON_PATH_2 = f"{workdir}/{geojson_file2}"
 
 JOIN_KEY = "DGUID"
 ED_KEY = "ED_NAMEE"
@@ -49,11 +53,10 @@ columns_others = ['DAUID']
 logs = []
 # --- Load and merge ---
 gdf2, logs = load_geojson(GEOJSON_PATH_2)
-df_da = load_parquet(TABLE_PATH)
+df = load_parquet(TABLE_PATH)
 
-if df_da is not None:
-
-    df_da = df_da[[JOIN_KEY] + list(METRICS.values()) + columns_others].copy()
+if df is not None:
+    df = df[[JOIN_KEY] + list(METRICS.values()) + columns_others].copy()
 
     # --- Electoral district selections ---
     default_ed = "Vancouver Centre"
@@ -87,13 +90,13 @@ if df_da is not None:
 
     # 1. Check both have the JOIN_KEY column
     assert JOIN_KEY in gdf.columns, f"{JOIN_KEY} not in gdf"
-    assert JOIN_KEY in df_da.columns, f"{JOIN_KEY} not in df_da"
+    assert JOIN_KEY in df.columns, f"{JOIN_KEY} not in df_da"
 
-    # 2. Inner join gdf and df_da on JOIN_KEY
+    # 2. Inner join gdf and df on JOIN_KEY
     gdf[JOIN_KEY] = gdf[JOIN_KEY].astype(str)
-    df_da[JOIN_KEY] = df_da[JOIN_KEY].astype(str)
+    df[JOIN_KEY] = df[JOIN_KEY].astype(str)
 
-    gdf = gdf.merge(df_da, on=JOIN_KEY, how="inner")
+    gdf = gdf.merge(df, on=JOIN_KEY, how="inner")
 
     # --- Add each metric as a separate (exclusive) base layer ---
     fg_dict = {}
