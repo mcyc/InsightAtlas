@@ -8,12 +8,11 @@ from utils.data_loader import load_geojson, download_from_gdrive,\
     load_geojson_from_parquet, load_parquet
 
 APP_VERSION = "v0.4.0.dev5"
-st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
+st.set_page_config(page_title="InsightAtlas | Impact Voters - My Climate Plan", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
-st.subheader("Census 2021 - Dissemination Areas")
+st.subheader("Climate Engagement - Electoral Districts")
 
 # --- Configuration ---
-table_file = "census_2021_combined.parquet"
 table_file = "census_2021_MCP.parquet"
 geojson_file = "DA_boundaries.parquet"
 geojson_file2 = "FED_ED_boundaries_2023.parquet"
@@ -21,7 +20,7 @@ geojson_file2 = "FED_ED_boundaries_2023.parquet"
 use_cloud_data = True
 CLOUD_DATA_DIR = "data/cloud"
 gcloud_root = "https://drive.google.com/uc?export=download&id="
-CLOUD_CSV_URL = f"{gcloud_root}1feWg-8hir4OmMChixJF59OLDkGoroIsK"
+CLOUD_CSV_URL = f"{gcloud_root}1jjli8YHeM341ckQAWiQBkE_SESjJrHZp"
 CLOUD_GEOJSON_URL = f"{gcloud_root}1cpnwtFmsH-9xypp55JVxfoRjH86_R3Dl"
 CLOUD_GEOJSON_URL_2 = f"{gcloud_root}1M5o82kpwWLTCDXr8Ld-4bOKknvxKUIwk"
 
@@ -207,8 +206,8 @@ st.sidebar.markdown(
     <div style='margin-bottom: 0.2em;'><h5>Description:</h5></div>
     <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.5em; margin-top: -0.8em;'>
         The mobilization score is calculated based on the information described in the Canadian Climate Engagement
-        <a href="https://link-url-here.org" target="_blank">article</a><br>
-        and the Canadian Census 2021 data.
+        <a href="https://link-url-here.org" target="_blank">article</a><br> using metricts drawn from
+        and the Canadian Census 2021 dissemination area (DA) data.
     </div>
     """,
     unsafe_allow_html=True
