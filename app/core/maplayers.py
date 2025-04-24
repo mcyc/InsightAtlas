@@ -47,12 +47,14 @@ def add_custom_choropleth(
         cmap="magma_r",
         nan_color="#d3d3d3",
         fill_opacity=0.6,
+        linewidth=1.5,
         border_color="darkgray",
         popup_fields=None,
         popup_aliases=None,
         show_legend=True,
         legend_caption=None,
         colorbar_width=275,
+        colorbar_nbins = 9,
         style_function=True,
         highlight_function=True,
 ):
@@ -71,6 +73,7 @@ def add_custom_choropleth(
 
     # Define bins if not provided
     if bins is None:
+        n_deci=1
         min_val = np.nanmin(values)
         max_val = np.nanmax(values)
         if pd.isna(min_val) or pd.isna(max_val):
@@ -78,13 +81,21 @@ def add_custom_choropleth(
         if abs(max_val - min_val) < 1e-6:
             min_val -= 0.01
             max_val += 0.01
-        bins = np.linspace(min_val, max_val, 9)
-        bins = np.round(bins, 1)
+        elif abs(max_val - min_val) > 1:
+            if min_val < 1:
+                min_val=0
+            if max_val > 10:
+                n_deci=0
+
+        max_val = int(np.round(max_val,n_deci))
+        min_val = int(np.round(min_val, n_deci))
+
+        bins = np.linspace(np.round(min_val, n_deci), np.round(max_val, n_deci), colorbar_nbins)
 
     # Try branca first, fallback to matplotlib colormap
     try:
         branca_cmap = getattr(branca.colormap.linear, cmap)
-        colormap = branca_cmap.scale(bins[0], bins[-1]).to_step(n=len(bins) - 1)
+        colormap = branca_cmap.scale(min_val, max_val, max_labels=(colorbar_nbins-1))
 
     except AttributeError:
         colormap = matplotlib_to_step_colormap(cmap, bins)
@@ -104,7 +115,7 @@ def add_custom_choropleth(
             kwargs['style_function']=lambda feature: {
                 "fillColor": feature["properties"]["__choropleth_color__"],
                 "color": border_color,
-                "weight": 1.5,
+                "weight": linewidth,
                 "fillOpacity": fill_opacity,
             }
 
