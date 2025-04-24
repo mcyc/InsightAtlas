@@ -5,7 +5,7 @@ from pathlib import Path
 import requests
 
 @st.cache_data
-def load_geojson(path):
+def load_geojson(path, simplify=None):
     """
     Load and preprocess a GeoJSON file.
 
@@ -38,7 +38,8 @@ def load_geojson(path):
         if gdf.crs and gdf.crs.to_string() != "EPSG:4326":
             logs.append(f"Reprojected from {gdf.crs} to EPSG:4326.")
             gdf = gdf.to_crs(epsg=4326)
-        gdf["geometry"] = gdf["geometry"].simplify(0.0001, preserve_topology=True)
+        if simplify: #0.0001
+            gdf["geometry"] = gdf["geometry"].simplify(simplify, preserve_topology=True)
         return gdf, logs
     except Exception as e:
         st.error(f"Failed to load GeoJSON: {e}")
