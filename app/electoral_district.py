@@ -49,11 +49,11 @@ METRICS = {
 # over writing above tempalte for now to make branch merging easier
 METRICS = {
     f"Mobilization Score": "Mobilization_Score",
-    f"Age 20-34 women {unit}:": "age_20to34_wmn",
-    f"Age 20-34 men {unit}:": "age_20to34_men",
+    f"Age 20-34 Women {unit}:": "age_20to34_wmn",
+    f"Age 20-34 Men {unit}:": "age_20to34_men",
     f"Age 20-34 {unit}": "age_20to34",
-    f"Age 60+ women {unit}:": "age_60plus_wmn",
-    f"Age 60+ men {unit}:": "age_60plus_men",
+    f"Age 60+ Women {unit}:": "age_60plus_wmn",
+    f"Age 60+ Men {unit}:": "age_60plus_men",
     f"Age 60+ {unit}": "age_60plus",
     f"Renting {unit}": "renting",
     f"Visible Minority {unit}": "viz_minority",
