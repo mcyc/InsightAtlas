@@ -209,7 +209,11 @@ st.sidebar.markdown(
     <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.5em; margin-top: -0.8em;'>
         The mobilization score is calculated based on the information described in the Canadian Climate Engagement
         <a href="https://reclimate.ca/the-five-canadas-engaging-canadians-on-climate-change/" target="_blank">article</a><br> using metricts drawn from
-        and the Canadian Census 2021 dissemination area (DA) data.
+        and the Canadian Census 2021 dissemination area (DA) data. 
+        <div style="height: 1em;"></div>
+        This InsightAtlas app is built in partnership with My Climate Plan for the 
+        <a href="https://impactvoters.ca/pledge" target="_blank">Impact Voters</a><br>
+        campaign.
     </div>
     """,
     unsafe_allow_html=True
