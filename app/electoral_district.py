@@ -8,9 +8,11 @@ from utils.data_loader import load_geojson, download_from_gdrive,\
     load_geojson_from_parquet, load_parquet
 
 APP_VERSION = "v0.4.0.dev5"
-st.set_page_config(page_title="InsightAtlas | Impact Voters - My Climate Plan", layout="wide")
+st.set_page_config(page_title="InsightAtlas | Impact Voters", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
-st.subheader("Climate Engagement - Electoral Districts")
+tip_msg = "Tip: the sidebar may be hidden on mobile view. " \
+          "You can select/search a different electoral district from the sidebar."
+st.subheader("Climate Engagement - Electoral Districts", help=tip_msg)
 
 # --- Configuration ---
 table_file = "census_2021_MCP.parquet"
@@ -80,7 +82,7 @@ if df is not None:
         default_ed = ed_list[0]
 
     selected_ed = st.sidebar.selectbox("Select federal electoral district:", ed_list, key="selected_ed",
-                                       index=ed_list.index(default_ed), help="Tip: you can use this like a search bar too")
+                                       index=ed_list.index(default_ed), help="Tip: you can search the selection bar too!")
 
     # --- Sidebar metric selection ---
     selected_label = st.sidebar.selectbox("Select metric:", list(METRICS.keys()), key="selected_label")
