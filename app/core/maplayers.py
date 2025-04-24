@@ -70,6 +70,8 @@ def add_custom_choropleth(
         The colorbar legend as an HTML MacroElement (only if show_legend is True).
     """
     values = pd.to_numeric(gdf[value_column], errors="coerce")
+    # remove purely zero value to help scaling
+    values[values==0] = np.nan
 
     # Define bins if not provided
     if bins is None:
