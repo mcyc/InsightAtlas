@@ -51,15 +51,15 @@ METRICS = {
 # over writing above tempalte for now to make branch merging easier
 METRICS = {
     f"Mobilization Score": "Mobilization_Score",
-    f"Age 20-34 Women {unit}:": "age_20to34_wmn",
-    f"Age 20-34 Men {unit}:": "age_20to34_men",
+    f"\"Progressive Activists\" {unit}": "age_20to34_wmn",
+    f"\"Civic Nationals\" {unit}": "age_60plus_wmn",
     f"Age 20-34 {unit}": "age_20to34",
-    f"Age 60+ Women {unit}:": "age_60plus_wmn",
-    f"Age 60+ Men {unit}:": "age_60plus_men",
     f"Age 60+ {unit}": "age_60plus",
     f"Renting {unit}": "renting",
     f"Visible Minority {unit}": "viz_minority",
     f"Bachelor's or higher {unit}": "edu_abvBach",
+    #f"Age 20-34 Men {unit}:": "age_20to34_men",
+    #f"Age 60+ Men {unit}:": "age_60plus_men",
 }
 
 # any aditional columns to add to the joint table
@@ -206,11 +206,12 @@ else:
 st.sidebar.markdown(
     f"""
     <div style='margin-bottom: 0.2em;'><h5>Description:</h5></div>
-    <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.5em; margin-top: -0.8em;'>
-        The mobilization score is calculated based on the information described in the Canadian Climate Engagement
-        <a href="https://reclimate.ca/the-five-canadas-engaging-canadians-on-climate-change/" target="_blank">article</a><br> using metricts drawn from
-        and the Canadian Census 2021 dissemination area (DA) data. 
-        <div style="height: 1em;"></div>
+    <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.8em; margin-top: -0.8em;'>
+        The mobilization score is calculated using the information described in the Canadian Climate Engagement
+        <a href="https://reclimate.ca/the-five-canadas-engaging-canadians-on-climate-change/" target="_blank">article</a> 
+        with metrics drawn from the Canadian Census 2021 dissemination area (DA) data. 
+        The classification of "Progressive Activists" and "Civic Nationals" are also drawn from the same article.
+        <div style="height: 0.8em;"></div>
         This InsightAtlas app is built in partnership with My Climate Plan for the 
         <a href="https://impactvoters.ca/pledge" target="_blank">Impact Voters</a><br>
         campaign.
