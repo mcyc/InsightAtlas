@@ -8,9 +8,11 @@ from utils.data_loader import load_geojson, download_from_gdrive,\
     load_geojson_from_parquet, load_parquet
 
 APP_VERSION = "v0.4.0.dev5"
-st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
+st.set_page_config(page_title="InsightAtlas | Fair Vote Engagement", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
-st.subheader("Census 2021 - Dissemination Areas")
+tip_msg = "Tip: the sidebar may be hidden on mobile view. " \
+          "You can select/search a different electoral district from the sidebar."
+st.subheader("Fair Vote Engagement - Electoral Districts", help=tip_msg)
 
 # --- Configuration ---
 table_file = "census_2021_combined.parquet"
@@ -67,7 +69,7 @@ if df is not None:
         default_ed = ed_list[0]
 
     selected_ed = st.sidebar.selectbox("Select federal electoral district:", ed_list, key="selected_ed",
-                                       index=ed_list.index(default_ed), help="Tip: you can use this like a search bar too")
+                                       index=ed_list.index(default_ed), help="Tip: you can search the selection bar too!")
 
     # --- Sidebar metric selection ---
     selected_label = st.sidebar.selectbox("Select metric:", list(METRICS.keys()), key="selected_label")
@@ -187,3 +189,17 @@ if df is not None:
                 st.info(msg)
 else:
     st.warning("Unable to load or render CT boundaries.")
+
+st.sidebar.markdown(
+    f"""
+    <div style='margin-bottom: 0.2em;'><h5>Description:</h5></div>
+    <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.5em; margin-top: -0.8em;'>
+        Priority score corresponds to the chance of encountering the demographics that Fair Vote Canada prioritizes for engagement
+        within a given neighbourhood/region, based on the Canadian Census 2021 data. Select or search the first dropbar to view any federal electoral district in Canada.
+        <div style="height: 1em;"></div>
+        This InsightAtlas app is built in partnership with
+        <a href="https://www.fairvote.ca/" target="_blank">Fair Vote Canada</a>.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
