@@ -1,0 +1,25 @@
+# Core dashboard and layout (Phase 1+)
+streamlit>=1.24
+pandas>=1.5
+geopandas>=0.13
+folium>=0.14
+streamlit-folium>=0.11
+numpy>=1.23
+matplotlib>=3.5,<4.0
+jinja2>=3.1
+branca>=0.6  # Optional: explicit in case of legend macro issues
+
+# Geometry + spatial filtering (Phase 2+)
+shapely>=2.0
+pyproj>=3.5
+
+# Optional: cloud sync + real-time backend (Phase 4)
+# firebase-admin>=6.3
+# requests>=2.31
+# python-dotenv>=1.0
+
+# Optional: Auth (Phase 4)
+# streamlit-authenticator>=0.2.2
+
+# Deployment compatibility
+protobuf<4.0
