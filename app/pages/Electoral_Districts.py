@@ -7,12 +7,12 @@ from utils.map_utils import compute_map_view
 from utils.data_loader import load_geojson, download_from_gdrive,\
     load_geojson_from_parquet, load_parquet
 
-APP_VERSION = "v0.4.0.dev5"
-st.set_page_config(page_title="InsightAtlas | Fair Vote Engagement", layout="wide")
+APP_VERSION = "v0.4.0a"
+st.set_page_config(page_title="InsightAtlas | Electoral Districts Demo", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
 tip_msg = "Tip: the sidebar may be hidden on mobile view. " \
           "You can select/search a different electoral district from the sidebar."
-st.subheader("Fair Vote Engagement - Electoral Districts", help=tip_msg)
+st.subheader("Voter Engagement - Electoral Districts", help=tip_msg)
 
 # --- Configuration ---
 table_file = "census_2021_combined.parquet"
@@ -62,7 +62,6 @@ if df is not None:
 
     # --- Electoral district selections ---
     default_ed = "Vancouver Centre"
-    #ed_list = ["Vancouver Centre", "Vancouver Granville", "Victoria", "Toronto Centre"]
     ed_list = sorted(gdf2[ED_KEY].dropna().unique())
     # if the default isn't in the table, select the first metro available
     if default_ed not in ed_list:
@@ -81,7 +80,7 @@ if df is not None:
         parquet_path=GEOJSON_PATH,
         labe_ref=selected_ed,
         _geojson_df=gdf2_selected,
-        _subset=['DGUID'] #'DAUID',
+        _subset=['DGUID']
     )
 
     # --- Compute center ---
@@ -194,12 +193,15 @@ st.sidebar.markdown(
     f"""
     <div style='margin-bottom: 0.2em;'><h5>Description:</h5></div>
     <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.5em; margin-top: -0.8em;'>
-        Priority score corresponds to the chance of encountering the demographics that Fair Vote Canada prioritizes for engagement
-        within a given neighbourhood/region, based on the Canadian Census 2021 data. Select or search the first dropbar to view any federal electoral district in Canada.
-        <div style="height: 1em;"></div>
-        This InsightAtlas app is built in partnership with
-        <a href="https://www.fairvote.ca/" target="_blank">Fair Vote Canada</a>.
-    </div>
+    This demo shows engagement prioritization scores across neighborhoods within a selected Canadian electoral district.
+    Use the sidebar's selection box to explore key demographic indicators from the 
+    <a href="https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/index.cfm?Lang=E" target="_blank">2021 Census</a>, 
+    used in the prioritization model.
+    Compare these maps to uncover quick insights that support targeted outreach and decision-making.
     """,
     unsafe_allow_html=True
 )
+
+st.sidebar.markdown("---")
+st.sidebar.caption("""**Author:** Mike Chen ([GitHub](https://github.com/mcyc) |
+ [LinkedIn](https://linkedin.com/in/mike-chen-phd))""", unsafe_allow_html=True)

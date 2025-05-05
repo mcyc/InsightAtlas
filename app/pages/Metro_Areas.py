@@ -7,10 +7,10 @@ from core.maplayers import add_custom_choropleth
 from utils.map_utils import compute_map_view
 from utils.data_loader import load_geojson, load_ct_values, download_from_gdrive
 
-APP_VERSION = "v0.4.0.dev2"
-st.set_page_config(page_title="InsightAtlas | Canadian Demographic Explorer", layout="wide")
+APP_VERSION = "v0.4.0a"
+st.set_page_config(page_title="InsightAtlas | Metro Areas Demo", layout="wide")
 st.sidebar.caption(f"Version: {APP_VERSION}")
-st.subheader("Census Tracts 2021")
+st.subheader("Census Profiles - Metropolitan Areas")
 
 # --- Configuration ---
 use_cloud_data = False
@@ -185,3 +185,20 @@ if gdf is not None and df is not None:
         st.dataframe(gdf[[JOIN_KEY, "CTNAME", selected_metric]].head())
 else:
     st.warning("Unable to load or render CT boundaries.")
+
+st.sidebar.markdown(
+    f"""
+    <div style='margin-bottom: 0.2em;'><h5>Description:</h5></div>
+    <div style='font-size: 0.85em; line-height: 1.4; margin-left: 0.3em; margin-right: 0.5em; margin-top: -0.8em;'>
+    This demo shows demographic indicators from the 
+    <a href="https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/index.cfm?Lang=E" target="_blank">2021 Census</a>
+    data for census tracts (i.e., neighborhoods) within a selected metropolitan area.
+    Compare different indicators using sidebar's selection box to uncover quick insights. A checkbox is available
+    to over lay the Canadian federal electoral district boundaries.
+    """,
+    unsafe_allow_html=True
+)
+
+st.sidebar.markdown("---")
+st.sidebar.caption("""**Author:** Mike Chen ([GitHub](https://github.com/mcyc) |
+ [LinkedIn](https://linkedin.com/in/mike-chen-phd))""", unsafe_allow_html=True)
